@@ -1,0 +1,34 @@
+[
+  {
+    "id": "p1",
+    "name": "Large Cardamom",
+    "description": "Sikkim's GI-tagged large cardamom, known for its distinct aroma and high essential oil content.",
+    "certification": "100% Organic Certified",
+    "benefits": ["Rich in antioxidants", "Improves digestion", "Distinct smoky flavor"],
+    "image": "cardamom.jpg"
+  },
+  {
+    "id": "p2",
+    "name": "Organic Ginger",
+    "description": "High-quality, disease-free organic ginger cultivated in the pristine hills of Sikkim.",
+    "certification": "100% Organic Certified",
+    "benefits": ["Anti-inflammatory", "Boosts immunity", "Strong aroma"],
+    "image": "ginger.jpg"
+  },
+  {
+    "id": "p3",
+    "name": "Sikkim Turmeric",
+    "description": "Premium quality turmeric with high curcumin content, sourced directly from organic farmers.",
+    "certification": "100% Organic Certified",
+    "benefits": ["High curcumin", "Natural healing properties", "Bright color"],
+    "image": "turmeric.jpg"
+  },
+  {
+    "id": "p4",
+    "name": "Buckwheat",
+    "description": "Nutrient-dense organic buckwheat, perfect for a healthy and gluten-free diet.",
+    "certification": "100% Organic Certified",
+    "benefits": ["Gluten-free", "High in protein", "Good for heart health"],
+    "image": "buckwheat.jpg"
+  }
+]

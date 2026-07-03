@@ -1,0 +1,37 @@
+{
+  "logoText": "Sikkim Organic MKT",
+  "menu": [
+    { "label": "Home", "link": "/" },
+    { "label": "About Us", "link": "/about" },
+    { "label": "Products", "link": "/products" },
+    { "label": "How it Works", "link": "/how-it-works" },
+    { "label": "Contact Us", "link": "/contact" }
+  ],
+  "languages": ["English", "Nepali"],
+  "actions": [
+    { "label": "Sign In", "primary": false },
+    { "label": "Register", "primary": true }
+  ],
+  "footer": {
+    "sections": [
+      {
+        "title": "Quick Links",
+        "links": [
+          { "label": "Home", "link": "/" },
+          { "label": "About Us", "link": "/about" },
+          { "label": "Marketplace", "link": "/products" },
+          { "label": "Contact Us", "link": "/contact" }
+        ]
+      },
+      {
+        "title": "Legal",
+        "links": [
+          { "label": "Privacy Policy", "link": "/privacy" },
+          { "label": "Terms & Conditions", "link": "/terms" },
+          { "label": "Accessibility", "link": "/accessibility" }
+        ]
+      }
+    ],
+    "copyright": "© 2026 Department of Agriculture & Horticulture, Government of Sikkim. All Rights Reserved."
+  }
+}

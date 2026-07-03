@@ -1,0 +1,22 @@
+[
+  {
+    "step": 1,
+    "title": "Farmer Registration",
+    "description": "Farmers and FPOs register on the platform with their organic certification details."
+  },
+  {
+    "step": 2,
+    "title": "Product Listing",
+    "description": "Farmers list their available harvest with expected yield and quality parameters."
+  },
+  {
+    "step": 3,
+    "title": "Buyer Discovery",
+    "description": "Global and domestic buyers discover verified products and place orders or inquiries."
+  },
+  {
+    "step": 4,
+    "title": "Quality Check & Logistics",
+    "description": "Government-approved agencies perform quality checks and facilitate secure logistics."
+  }
+]

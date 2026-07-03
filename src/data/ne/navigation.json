@@ -1,0 +1,37 @@
+{
+  "logoText": "सिक्किम अर्गानिक MKT",
+  "menu": [
+    { "label": "मुख्य पृष्ठ", "link": "/" },
+    { "label": "हाम्रो बारेमा", "link": "/about" },
+    { "label": "उत्पादनहरू", "link": "/products" },
+    { "label": "यसले कसरी काम गर्छ", "link": "/how-it-works" },
+    { "label": "सम्पर्क", "link": "/contact" }
+  ],
+  "languages": ["English", "नेपाली"],
+  "actions": [
+    { "label": "साइन इन", "primary": false },
+    { "label": "दर्ता गर्नुहोस्", "primary": true }
+  ],
+  "footer": {
+    "sections": [
+      {
+        "title": "द्रुत लिङ्कहरू",
+        "links": [
+          { "label": "मुख्य पृष्ठ", "link": "/" },
+          { "label": "हाम्रो बारेमा", "link": "/about" },
+          { "label": "बजार", "link": "/products" },
+          { "label": "सम्पर्क", "link": "/contact" }
+        ]
+      },
+      {
+        "title": "कानूनी",
+        "links": [
+          { "label": "गोपनीयता नीति", "link": "/privacy" },
+          { "label": "नियम र सर्तहरू", "link": "/terms" },
+          { "label": "पहुँच", "link": "/accessibility" }
+        ]
+      }
+    ],
+    "copyright": "© 2026 कृषि तथा बागवानी विभाग, सिक्किम सरकार। सबै अधिकार सुरक्षित।"
+  }
+}
