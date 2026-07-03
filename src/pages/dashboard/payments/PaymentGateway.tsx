@@ -52,7 +52,7 @@ const PaymentGateway: React.FC = () => {
       setPaidMilestoneId(currentMilestone.id);
       processPayment(contract.id, currentMilestone.id);
       triggerSMS(
-        contract.supplierPhone || 'Supplier',
+        contract.supplierName || 'Supplier',
         `Payment Received! Rs. ${currentMilestone.amount.toLocaleString('en-IN')} has been credited for Contract ${contract.contractRef}.`
       );
       setShowReceipt(true);
@@ -182,7 +182,7 @@ const PaymentGateway: React.FC = () => {
 
               {(selectedMethod === 'NET_BANKING' || selectedMethod === 'CARD' || selectedMethod === 'NEFT') && (
                 <div className="bg-gray-50 border border-gray-200 rounded-xl p-8 text-center text-gray-500">
-                  <method.icon className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                  <Building className="w-12 h-12 mx-auto mb-3 text-gray-400" />
                   <p className="font-medium">Selected: {selectedMethod.replace('_', ' ')}</p>
                   <p className="text-xs mt-1">This is a simulated payment gateway.</p>
                 </div>
