@@ -7,6 +7,10 @@ import { useNotification } from '../../context/NotificationContext';
 import type { BuyerEnquiry } from '../../context/NegotiationContext';
 import { Search, Filter, ShieldCheck, Star, MapPin, Truck, ArrowLeft, ArrowRight, LayoutGrid, List, CheckCircle2, Clock, Info } from 'lucide-react';
 import clsx from 'clsx';
+import cardamomImg from '../../assets/cardamom.jpg';
+import gingerImg from '../../assets/ginger.jpg';
+import turmericImg from '../../assets/turmeric.jpg';
+import buckwheatImg from '../../assets/buckwheat.jpg';
 
 const ProductProcurement: React.FC = () => {
   const { cropId } = useParams();
@@ -81,7 +85,7 @@ const ProductProcurement: React.FC = () => {
       const qty = sp.hasPhase2 ? sp.actualYield : sp.estimatedYield;
       if (qty < filters.minQty) return false;
       if (filters.sps.size > 0 && !filters.sps.has(sp.name)) return false;
-      if (filters.districts.size > 0 && !sp.districts.some((d: string) => filters.districts.has(d))) return false;
+      if (filters.districts.size > 0 && !sp.districts.some(d => filters.districts.has(d))) return false;
       return true;
     });
   }, [baseSuppliers, filters]);
@@ -100,15 +104,39 @@ const ProductProcurement: React.FC = () => {
     return <span className="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-1 rounded-md flex items-center border border-blue-200"><Clock className="w-3.5 h-3.5 mr-1" /> Pre-Booking (Estimated)</span>;
   };
 
+  const getCropImage = (name: string) => {
+    if (!name) return cardamomImg;
+    switch (name.toLowerCase()) {
+      case 'large cardamom': return cardamomImg;
+      case 'ginger': return gingerImg;
+      case 'turmeric': return turmericImg;
+      case 'buckwheat': return buckwheatImg;
+      default: return cardamomImg;
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto py-6 relative h-full flex flex-col">
-      <div className="flex items-center mb-6">
-        <button onClick={() => navigate('/dashboard/marketplace')} className="text-gray-500 hover:text-gray-900 mr-4">
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Procure {cropId}</h1>
-          <p className="text-sm text-gray-500">Discover and compare certified ICS Providers supplying {cropId}.</p>
+      <div className="relative bg-gray-900 rounded-2xl overflow-hidden mb-8 shadow-sm flex-shrink-0 min-h-[160px] flex items-center">
+        <img 
+          src={getCropImage(cropId || '')} 
+          alt={cropId}
+          className="absolute inset-0 w-full h-full object-cover opacity-80"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-gray-900 via-gray-900/70 to-transparent"></div>
+        <div className="relative p-6 md:p-10 flex items-center w-full">
+          <button onClick={() => navigate('/dashboard/marketplace')} className="text-white/80 hover:text-white mr-6 bg-white/10 hover:bg-white/20 p-2.5 rounded-full transition-colors backdrop-blur-sm flex-shrink-0">
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm flex items-center w-max">
+                <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Verified Supply
+              </span>
+            </div>
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">{cropId}</h1>
+            <p className="text-lg text-gray-200 max-w-2xl">Discover and compare certified ICS Providers supplying {cropId}.</p>
+          </div>
         </div>
       </div>
 
@@ -269,7 +297,7 @@ const ProductProcurement: React.FC = () => {
                       <p className="font-medium text-gray-900">{sp.moq}</p>
                     </div>
                     <div>
-                      <p className="text-gray-500 text-xs uppercase tracking-wide">Regions</p>
+                      <p className="text-gray-500 text-xs uppercase tracking-wide">District</p>
                       <p className="font-medium text-gray-900 flex items-center"><MapPin className="w-3 h-3 mr-1 text-gray-400" /> {sp.districts.join(', ')}</p>
                     </div>
                     <div>
@@ -445,14 +473,14 @@ const ProductProcurement: React.FC = () => {
                   });
                   setTimeout(() => {
                     setIsSending(false);
-                    setEnquiryMode(null);
+                    setShowEnquiryModal(false);
                     
                     const supplierList = targetList.map(spId => suppliers.find(s => s.id === spId)?.name || spId).join(', ');
                     
                     triggerEmail(
-                      supplierList,
-                      cropId || 'Produce', 
-                      `Dear Supplier,\n\nYou have received a new commercial enquiry for ${cropId}.\n\nProcurement Type: ${enqForm.type}\nQuantity Requested: ${enqForm.qty} ${enqForm.uom}\nDelivery Date: ${enqForm.date}\n\nPlease login to the Sikkim Organic Platform to acknowledge and submit your quotation.\n\nBest Regards,\nGlobal Organic Foods Ltd.`
+                      supplierList, 
+                      `New Commercial Enquiry: ${cropData?.name || cropId}`,
+                      `Dear Supplier,\n\nYou have received a new commercial enquiry for ${cropData?.name || cropId}.\n\nProcurement Type: ${enqForm.type}\nQuantity Requested: ${enqForm.qty} ${enqForm.uom}\nDelivery Date: ${enqForm.date}\n\nPlease login to the Sikkim Organic Platform to acknowledge and submit your quotation.\n\nBest Regards,\nGlobal Organic Foods Ltd.`
                     );
                     
                     navigate('/dashboard/my-enquiries');
