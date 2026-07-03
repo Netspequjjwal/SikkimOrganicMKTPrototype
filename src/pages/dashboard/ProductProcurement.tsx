@@ -85,7 +85,7 @@ const ProductProcurement: React.FC = () => {
       const qty = sp.hasPhase2 ? sp.actualYield : sp.estimatedYield;
       if (qty < filters.minQty) return false;
       if (filters.sps.size > 0 && !filters.sps.has(sp.name)) return false;
-      if (filters.districts.size > 0 && !sp.districts.some(d => filters.districts.has(d))) return false;
+      if (filters.districts.size > 0 && !sp.districts.some((d: string) => filters.districts.has(d))) return false;
       return true;
     });
   }, [baseSuppliers, filters]);
@@ -473,14 +473,14 @@ const ProductProcurement: React.FC = () => {
                   });
                   setTimeout(() => {
                     setIsSending(false);
-                    setShowEnquiryModal(false);
+                    setEnquiryMode(null);
                     
                     const supplierList = targetList.map(spId => suppliers.find(s => s.id === spId)?.name || spId).join(', ');
                     
                     triggerEmail(
                       supplierList, 
-                      `New Commercial Enquiry: ${cropData?.name || cropId}`,
-                      `Dear Supplier,\n\nYou have received a new commercial enquiry for ${cropData?.name || cropId}.\n\nProcurement Type: ${enqForm.type}\nQuantity Requested: ${enqForm.qty} ${enqForm.uom}\nDelivery Date: ${enqForm.date}\n\nPlease login to the Sikkim Organic Platform to acknowledge and submit your quotation.\n\nBest Regards,\nGlobal Organic Foods Ltd.`
+                      `New Commercial Enquiry: ${cropId}`,
+                      `Dear Supplier,\n\nYou have received a new commercial enquiry for ${cropId}.\n\nProcurement Type: ${enqForm.type}\nQuantity Requested: ${enqForm.qty} ${enqForm.uom}\nDelivery Date: ${enqForm.date}\n\nPlease login to the Sikkim Organic Platform to acknowledge and submit your quotation.\n\nBest Regards,\nGlobal Organic Foods Ltd.`
                     );
                     
                     navigate('/dashboard/my-enquiries');
