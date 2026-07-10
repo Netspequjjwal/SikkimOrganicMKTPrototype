@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useYieldSurvey } from '../../context/YieldSurveyContext';
 import { useNegotiation } from '../../context/NegotiationContext';
+import { useActionCenter } from '../../context/ActionCenterContext';
 import { useNotification } from '../../context/NotificationContext';
 import type { BuyerEnquiry } from '../../context/NegotiationContext';
 import { Search, Filter, ShieldCheck, Star, MapPin, Truck, ArrowLeft, ArrowRight, LayoutGrid, List, CheckCircle2, Clock, Info } from 'lucide-react';
@@ -18,6 +19,7 @@ const ProductProcurement: React.FC = () => {
   const { user } = useAuth();
   const { surveys } = useYieldSurvey();
   const { addEnquiry } = useNegotiation();
+  const { logAction } = useActionCenter();
   const { triggerEmail } = useNotification();
 
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
@@ -459,7 +461,7 @@ const ProductProcurement: React.FC = () => {
 
                   targetList.forEach(spId => {
                     const sp = suppliers.find(s => s.id === spId);
-                    addEnquiry({
+                    const newId = addEnquiry({
                       buyerName: user?.name || 'Authorized Buyer',
                       supplierName: sp?.name || spId,
                       product: cropId || 'Organic Produce',
@@ -470,6 +472,13 @@ const ProductProcurement: React.FC = () => {
                       deliveryLocation: 'To Be Decided',
                       priority: 'Normal'
                     }, enqForm.notes);
+
+                    logAction({
+                      title: `Enquiry Sent to ${sp?.name || spId}`,
+                      description: `Requested ${enqForm.qty} ${enqForm.uom} of ${cropId}`,
+                      iconType: 'enquiry',
+                      actionUrl: `/dashboard/negotiation/${newId}`
+                    });
                   });
                   setTimeout(() => {
                     setIsSending(false);

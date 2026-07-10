@@ -140,8 +140,15 @@ export const ContractProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [contracts, setContracts] = useState<DigitalContract[]>(initialContracts);
 
   const createContract = (enquiryData: any) => {
+    // Deterministic ID to prevent strict-mode duplicates
+    const newId = `contract-${enquiryData.id}`;
+    
+    // Quick closure check just in case
+    const existing = contracts.find(c => c.id === newId || c.enquiryId === enquiryData.id);
+    if (existing) return existing.id;
+
     const newContract: DigitalContract = {
-      id: `contract-${Date.now()}`,
+      id: newId,
       enquiryId: enquiryData.id,
       buyerName: enquiryData.buyerName,
       supplierName: enquiryData.supplierName,
@@ -160,8 +167,16 @@ export const ContractProvider: React.FC<{ children: ReactNode }> = ({ children }
       paymentConfigured: false,
       paymentMilestones: []
     };
-    setContracts(prev => [newContract, ...prev]);
-    return newContract.id;
+    
+    setContracts(prev => {
+      // Functional state check to guarantee no duplicates
+      if (prev.find(c => c.id === newId || c.enquiryId === enquiryData.id)) {
+        return prev;
+      }
+      return [newContract, ...prev];
+    });
+    
+    return newId;
   };
 
   const updateContractClauses = (contractId: string, clauses: ContractClause[]) => {

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useContract, type DigitalContract } from '../../../context/ContractContext';
 import { useNotification } from '../../../context/NotificationContext';
+import { useOrder } from '../../../context/OrderContext';
 import { IndianRupee, CreditCard, Building, Smartphone, ShieldCheck, Download, CheckCircle, ArrowRight } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -10,12 +11,14 @@ const PaymentGateway: React.FC = () => {
   const navigate = useNavigate();
   const { contracts, processPayment } = useContract();
   const { triggerSMS } = useNotification();
+  const { createOrder } = useOrder();
   
   const [contract, setContract] = useState<DigitalContract | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<'UPI' | 'NET_BANKING' | 'CARD' | 'NEFT'>('UPI');
   const [isProcessing, setIsProcessing] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
   const [paidMilestoneId, setPaidMilestoneId] = useState<string | null>(null);
+  const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     const existing = contracts.find(c => c.id === contractId);
@@ -55,6 +58,11 @@ const PaymentGateway: React.FC = () => {
         contract.supplierName || 'Supplier',
         `Payment Received! Rs. ${currentMilestone.amount.toLocaleString('en-IN')} has been credited for Contract ${contract.contractRef}.`
       );
+      
+      // Trigger order creation/workflow start
+      const newOrderId = createOrder(contract);
+      setCreatedOrderId(newOrderId);
+
       setShowReceipt(true);
     }, 2500);
   };
@@ -108,9 +116,15 @@ const PaymentGateway: React.FC = () => {
               <button className="bg-white border border-gray-300 text-gray-700 px-6 py-2.5 rounded-lg text-sm font-bold hover:bg-gray-50 transition-colors flex items-center">
                 <Download className="w-4 h-4 mr-2" /> Download Receipt
               </button>
-              <button onClick={() => navigate('/dashboard/buyer-contracts')} className="bg-primary hover:bg-primary-dark text-white px-6 py-2.5 rounded-lg text-sm font-bold transition-colors">
-                Return to Dashboard
-              </button>
+              {createdOrderId ? (
+                <button onClick={() => navigate(`/dashboard/orders/${createdOrderId}`)} className="bg-primary hover:bg-primary-dark text-white px-6 py-2.5 rounded-lg text-sm font-bold transition-colors">
+                  Provide Delivery Details
+                </button>
+              ) : (
+                <button onClick={() => navigate('/dashboard/buyer-contracts')} className="bg-primary hover:bg-primary-dark text-white px-6 py-2.5 rounded-lg text-sm font-bold transition-colors">
+                  Return to Dashboard
+                </button>
+              )}
             </div>
           </div>
         </div>

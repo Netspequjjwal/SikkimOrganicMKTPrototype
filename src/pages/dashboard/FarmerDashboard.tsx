@@ -1,7 +1,15 @@
 import React from 'react';
-import { Package, IndianRupee, MessageSquare, TrendingUp, CheckCircle2 } from 'lucide-react';
+import { Package, IndianRupee, MessageSquare, TrendingUp, CheckCircle2, ShieldAlert, ArrowRight } from 'lucide-react';
+import { useTC } from '../../context/TCContext';
+import { useNavigate } from 'react-router-dom';
 
 const FarmerDashboard: React.FC = () => {
+  const { requests } = useTC();
+  const navigate = useNavigate();
+
+  // Show only non-active/rejected requests for quick action, or recent 3
+  const activeRequests = requests.filter(r => r.fpoId === 'fpo1' && r.status !== 'Rejected' && r.status !== 'Accepted').slice(0, 3);
+
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       <div className="flex justify-between items-center bg-white p-6 rounded-xl border border-green-200 shadow-sm relative overflow-hidden">
@@ -98,6 +106,51 @@ const FarmerDashboard: React.FC = () => {
           </ul>
         </div>
       </div>
+
+      {activeRequests.length > 0 && (
+        <div className="bg-white shadow-sm rounded-xl border border-gray-100 overflow-hidden mt-6">
+          <div className="px-6 py-5 border-b border-gray-200">
+            <h3 className="text-lg leading-6 font-medium text-gray-900 flex items-center gap-2">
+              <ShieldAlert className="w-5 h-5 text-primary" /> Pending TC Requests & Proposals
+            </h3>
+          </div>
+          <ul className="divide-y divide-gray-200">
+            {activeRequests.map((req) => (
+              <li key={req.id} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                <div>
+                  <h4 className="text-sm font-bold text-gray-900">{req.id} - {req.crops.join(', ')}</h4>
+                  <p className="text-sm text-gray-500">Requested from Provider ID: {req.providerId}</p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+                    ${req.status === 'Proposal Ready' ? 'bg-blue-100 text-blue-800' :
+                      req.status === 'Payment Pending' ? 'bg-purple-100 text-purple-800' :
+                      'bg-yellow-100 text-yellow-800'}`}>
+                    {req.status}
+                  </span>
+                  
+                  {req.status === 'Proposal Ready' && (
+                    <button 
+                      onClick={() => navigate(`/dashboard/tc/proposal/${req.id}`)}
+                      className="text-sm font-bold text-primary hover:text-primary-dark flex items-center gap-1"
+                    >
+                      Review Proposal <ArrowRight className="w-4 h-4" />
+                    </button>
+                  )}
+                  {req.status === 'Payment Pending' && (
+                    <button 
+                      onClick={() => navigate(`/dashboard/tc/payment/${req.id}`)}
+                      className="text-sm font-bold text-primary hover:text-primary-dark flex items-center gap-1"
+                    >
+                      Make Payment <ArrowRight className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 };

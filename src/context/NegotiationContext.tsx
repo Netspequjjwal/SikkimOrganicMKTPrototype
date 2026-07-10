@@ -10,6 +10,7 @@ export interface ChatMessage {
   attachmentName?: string;
   fileUrl?: string;
   isQuotation?: boolean;
+  isPurchaseIntent?: boolean;
   quotationDetails?: {
     pricePerUnit: number;
     totalAmount: number;

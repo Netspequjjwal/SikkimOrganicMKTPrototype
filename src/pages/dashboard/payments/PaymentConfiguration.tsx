@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useContract, type DigitalContract, type PaymentMilestone } from '../../../context/ContractContext';
 import { useNotification } from '../../../context/NotificationContext';
+import { useActionCenter } from '../../../context/ActionCenterContext';
 import { CreditCard, Plus, Trash2, Calendar, CheckCircle, IndianRupee, Shield, Send, FileSignature } from 'lucide-react';
 
 type PaymentModel = 'Advance' | 'Partial' | 'Milestone';
@@ -11,6 +12,7 @@ const PaymentConfiguration: React.FC = () => {
   const navigate = useNavigate();
   const { contracts, configurePayments, signContractSP } = useContract();
   const { triggerSMS, triggerEmail } = useNotification();
+  const { logAction } = useActionCenter();
   
   const [contract, setContract] = useState<DigitalContract | null>(null);
   const [paymentModel, setPaymentModel] = useState<PaymentModel>('Advance');
@@ -141,6 +143,13 @@ const PaymentConfiguration: React.FC = () => {
       `Draft_Contract_${contract.enquiryId}.pdf`,
       'PDF'
     );
+    
+    logAction({
+      title: `Contract Sent for Signature`,
+      description: `Draft for ${contract.quantity} ${contract.uom} of ${contract.product} sent to ${contract.buyerName}.`,
+      iconType: 'contract',
+      actionUrl: `/dashboard/sp-contracts`
+    });
     
     navigate('/dashboard/sp-contracts');
   };

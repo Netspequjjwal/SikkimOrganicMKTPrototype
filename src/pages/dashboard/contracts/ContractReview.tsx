@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useContract, type DigitalContract } from '../../../context/ContractContext';
 import { useNotification } from '../../../context/NotificationContext';
-import { Shield, FileSignature, Download, Printer, CheckCircle, Stamp } from 'lucide-react';
+import { Shield, FileSignature, Download, Printer, CheckCircle, Stamp, Clock, CreditCard } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuth } from '../../../context/AuthContext';
+import { useActionCenter } from '../../../context/ActionCenterContext';
+import TransactionMap from '../../../components/common/TransactionMap';
 
 const ContractReview: React.FC = () => {
   const { contractId } = useParams();
@@ -12,6 +14,7 @@ const ContractReview: React.FC = () => {
   const { contracts, signContractBuyer } = useContract();
   const { triggerEmail } = useNotification();
   const { user } = useAuth();
+  const { logAction } = useActionCenter();
   
   const [contract, setContract] = useState<DigitalContract | null>(null);
   const [showSignatureModal, setShowSignatureModal] = useState(false);
@@ -50,11 +53,42 @@ const ContractReview: React.FC = () => {
       'PDF'
     );
     
-    navigate('/dashboard/buyer-contracts');
+    logAction({
+      title: `Contract Signed by Buyer`,
+      description: `${contract.buyerName} has legally executed the digital contract for ${contract.quantity} ${contract.uom} of ${contract.product}.`,
+      iconType: 'contract',
+      actionUrl: `/dashboard/sp-contracts`
+    });
   };
 
   return (
     <div className="max-w-5xl mx-auto py-8">
+      <TransactionMap contractId={contract.id} currentStep="contract" />
+
+      {/* Post-Execution Actions */}
+      {contract.status === 'Legally Executed' && isBuyer && (
+        <div className="mb-6 bg-blue-50 border border-blue-200 rounded-xl p-6 text-center shadow-sm">
+          <Clock className="w-10 h-10 text-blue-500 mx-auto mb-3" />
+          <h2 className="text-xl font-bold text-blue-900 mb-2">Contract Successfully Executed</h2>
+          <p className="text-blue-800">The digital contract is now legally binding. The Service Provider has been notified to configure the payment schedule.</p>
+          <p className="text-sm font-bold text-blue-900 mt-4 uppercase tracking-wider">Next Step: Awaiting Payment Configuration</p>
+        </div>
+      )}
+
+      {contract.status === 'Payment Pending' && isBuyer && (
+        <div className="mb-6 bg-purple-50 border border-purple-200 rounded-xl p-6 text-center shadow-sm">
+          <CreditCard className="w-10 h-10 text-purple-600 mx-auto mb-3" />
+          <h2 className="text-xl font-bold text-purple-900 mb-2">Payment Required</h2>
+          <p className="text-purple-800 mb-4">The payment schedule has been configured. Please proceed to the payment gateway to complete the advance payment and trigger order fulfilment.</p>
+          <button 
+            onClick={() => navigate(`/dashboard/payments/gateway/${contract.id}`)}
+            className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-8 rounded-lg shadow-sm transition-colors"
+          >
+            Proceed to Payment
+          </button>
+        </div>
+      )}
+
       {/* Header Actions */}
       <div className="flex justify-between items-center mb-6">
         <div>

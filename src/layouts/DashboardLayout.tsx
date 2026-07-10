@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
-  LayoutDashboard, Users, FileText, Settings, LogOut, Bell, Menu, X, CheckCircle, BarChart3, Truck, Search, FilePlus, FileCheck, UploadCloud, ClipboardList, ShoppingCart, MessageSquare, FileSignature
+  LayoutDashboard, Users, FileText, Settings, LogOut, Bell, Menu, X, CheckCircle, BarChart3, Truck, Search, FilePlus, FileCheck, UploadCloud, ClipboardList, ShoppingCart, MessageSquare, FileSignature, Package, ShieldCheck, Shield, Key
 } from 'lucide-react';
 import logoImg from '../assets/logo.png';
 import clsx from 'clsx';
@@ -23,13 +23,13 @@ const DashboardLayout: React.FC = () => {
     
     switch(user?.role) {
       case 'AGRI_DEPT':
-        return [...base, { icon: FileCheck, label: 'SP Approvals', path: '/dashboard/sp-approvals' }, { icon: ClipboardList, label: 'Survey Approvals', path: '/dashboard/survey-approvals' }, { icon: Users, label: 'Farmers', path: '#' }, { icon: BarChart3, label: 'Analytics', path: '#' }];
+        return [...base, { icon: FileCheck, label: 'ICS Registrations', path: '/dashboard/sp-approvals' }, { icon: Users, label: 'FPO Registration', path: '/dashboard/agri/fpo-registration' }, { icon: Package, label: 'ICS Product Listing', path: '/dashboard/agri/ics-products' }, { icon: FileText, label: 'FPO Product Listing', path: '/dashboard/agri/fpo-products' }, { icon: BarChart3, label: 'Analytics & Reports', path: '/dashboard/agri/analytics' }];
       case 'ICS_PROVIDER':
-        return [...base, { icon: MessageSquare, label: 'Buyer Enquiries', path: '/dashboard/buyer-enquiries' }, { icon: UploadCloud, label: 'Publish Produces', path: '/dashboard/upload-survey' }, { icon: FileSignature, label: 'Contracts', path: '/dashboard/sp-contracts' }, { icon: ClipboardList, label: 'Ledger', path: '/dashboard/payments/ledger' }, { icon: FilePlus, label: 'Register Organization', path: '/dashboard/register-sp' }];
+        return [...base, { icon: MessageSquare, label: 'Buyer Enquiries', path: '/dashboard/buyer-enquiries' }, { icon: UploadCloud, label: 'Publish Produces', path: '/dashboard/survey' }, { icon: FileSignature, label: 'Contracts', path: '/dashboard/sp-contracts' }, { icon: Package, label: 'Order Fulfilment', path: '/dashboard/sp-orders' }, { icon: ClipboardList, label: 'Ledger', path: '/dashboard/payments/ledger' }, { icon: FilePlus, label: 'Register Organization', path: '/dashboard/sp-registration' }, { icon: ShieldCheck, label: 'TC Requests', path: '/dashboard/tc/requests' }];
       case 'FPO_FARMER':
-        return [...base, { icon: FileText, label: 'My Products', path: '#' }, { icon: BarChart3, label: 'Sales', path: '#' }, { icon: Settings, label: 'Settings', path: '#' }];
+        return [...base, { icon: FileText, label: 'My Products', path: '#' }, { icon: UploadCloud, label: 'Publish Product', path: '/dashboard/fpo/publish' }, { icon: Shield, label: 'TC Services', path: '/dashboard/tc/marketplace' }, { icon: Key, label: 'TC Vault', path: '/dashboard/tc/vault' }, { icon: BarChart3, label: 'Sales', path: '#' }, { icon: Settings, label: 'Settings', path: '#' }];
       case 'BUYER':
-        return [...base, { icon: ShoppingCart, label: 'Marketplace', path: '/dashboard/marketplace' }, { icon: FileText, label: 'My Enquiries', path: '/dashboard/my-enquiries' }, { icon: FileSignature, label: 'Contracts', path: '/dashboard/buyer-contracts' }, { icon: ClipboardList, label: 'Ledger', path: '/dashboard/payments/ledger' }];
+        return [...base, { icon: ShoppingCart, label: 'Marketplace', path: '/dashboard/marketplace' }, { icon: FileText, label: 'My Enquiries', path: '/dashboard/my-enquiries' }, { icon: FileSignature, label: 'Contracts', path: '/dashboard/buyer-contracts' }, { icon: Truck, label: 'My Orders', path: '/dashboard/buyer-orders' }, { icon: ClipboardList, label: 'Ledger', path: '/dashboard/payments/ledger' }];
       default:
         return base;
     }

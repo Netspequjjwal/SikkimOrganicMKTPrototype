@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Truck, FileCheck, Users, Search, IndianRupee, ShoppingCart, TrendingUp, Pin, AlertCircle, Clock, FileSignature, CreditCard, ChevronRight, MessageSquare, CheckCircle, Package, X } from 'lucide-react';
+import { MapPin, Search, ArrowRight, FileSignature, CheckCircle, Package, Truck, ArrowLeft, ArrowUpRight, DollarSign, CreditCard, ExternalLink, Calendar, CheckCircle2, Clock, X, MessageSquare, AlertCircle, Pin, ChevronRight, ShoppingCart, FileText, FileCheck } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useContract } from '../../context/ContractContext';
 import { useNegotiation } from '../../context/NegotiationContext';
+import { useOrder } from '../../context/OrderContext';
+import { useActionCenter } from '../../context/ActionCenterContext';
+import bannerImg from '../../assets/banner.png';
 
 const data = [
   { name: 'Jan', amount: 1200000 },
@@ -18,9 +21,8 @@ const BuyerDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { contracts } = useContract();
   const { enquiries } = useNegotiation();
-  
-  // Pinned items state (simulate localStorage persistence)
-  const [pinnedIds, setPinnedIds] = useState<string[]>([]);
+  const { orders } = useOrder();
+  const { recentActions } = useActionCenter();
   
   // Timeline Tracker state
   const [trackerSearch, setTrackerSearch] = useState('');
@@ -40,26 +42,20 @@ const BuyerDashboard: React.FC = () => {
   const pendingContracts = contracts.filter(c => c.status === 'Pending Buyer Review');
   const pendingPayments = contracts.filter(c => c.status === 'Payment Pending' || c.status === 'Partially Paid');
   const activeQuotations = enquiries.filter(e => e.status === 'Quotation Submitted');
+  const pendingDeliveryActions = orders.filter(o => 
+    o.status === 'Ready for Delivery Details' || 
+    o.status === 'Awaiting Buyer Delivery Confirmation' || 
+    ['Shipment In Transit', 'Out for Delivery', 'Delivered (Awaiting Buyer Confirmation)'].includes(o.status)
+  );
 
   const allActionableItems = [
     ...pendingContracts.map(c => ({ id: c.id, refId: c.contractRef || 'Pending Ref', title: `Contract Signature Required - ${c.product}`, type: 'signature', actionUrl: `/dashboard/contracts/review/${c.id}` })),
     ...pendingPayments.map(c => ({ id: c.id, refId: c.contractRef || 'Pending Ref', title: `Payment Due - ₹${c.totalAmount.toLocaleString()} for ${c.product}`, type: 'payment', actionUrl: `/dashboard/payments/gateway/${c.id}` })),
-    ...activeQuotations.map(e => ({ id: e.id, refId: e.id, title: `Quotation Received - ${e.product} from ${e.supplierName}`, type: 'quotation', actionUrl: `/dashboard/negotiation/${e.id}` }))
+    ...activeQuotations.map(e => ({ id: e.id, refId: e.id, title: `Quotation Received - ${e.product} from ${e.supplierName}`, type: 'quotation', actionUrl: `/dashboard/negotiation/${e.id}` })),
+    ...pendingDeliveryActions.map(o => ({ id: o.id, refId: o.contractRef || o.id, title: `Order Action Required - ${o.status}`, type: 'order', actionUrl: `/dashboard/orders/${o.id}` }))
   ];
 
-  // Derive Pinned Items
-  const pinnedEnquiries = enquiries.filter(e => pinnedIds.includes(e.id)).map(e => ({ id: e.id, refId: e.id, title: `Enquiry Active - ${e.product}`, status: e.status, actionUrl: `/dashboard/negotiation/${e.id}` }));
-  const pinnedContracts = contracts.filter(c => pinnedIds.includes(c.id)).map(c => ({ id: c.id, refId: c.contractRef || 'Pending Ref', title: `Contract Active - ${c.product}`, status: c.status, actionUrl: `/dashboard/contracts/review/${c.id}` }));
-  const allPinnedItems = [...pinnedEnquiries, ...pinnedContracts];
-
-  const handlePin = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (pinnedIds.includes(id)) {
-      setPinnedIds(pinnedIds.filter(pid => pid !== id));
-    } else {
-      setPinnedIds([...pinnedIds, id]);
-    }
-  };
+  // We removed the derived recentActivities because we now use recentActions from ActionCenterContext
 
   const handleTrackerSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -151,17 +147,23 @@ const BuyerDashboard: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       {/* Top Header & CTAs */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Buyer Dashboard</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage your procurement, track transactions, and take action.</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-6 md:p-8 rounded-xl shadow-lg border border-gray-800 relative overflow-hidden group">
+        {/* Background Image & Gradient Overlay */}
+        <div className="absolute inset-0">
+          <img src={bannerImg} alt="Organic Farmland" className="w-full h-full object-cover opacity-30 group-hover:opacity-40 transition-opacity duration-700" />
+          <div className="absolute inset-0 bg-gradient-to-r from-gray-900 via-gray-900/90 to-primary/80 mix-blend-multiply"></div>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <button onClick={() => navigate('/dashboard/marketplace')} className="bg-primary hover:bg-primary-dark text-white px-5 py-2.5 rounded-lg font-medium transition-colors flex items-center shadow-sm">
-            <ShoppingCart className="w-4 h-4 mr-2" /> 
+        
+        <div className="relative z-10">
+          <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">Buyer Dashboard</h1>
+          <p className="text-sm md:text-base text-gray-300 mt-1.5 font-medium max-w-md">Manage your procurement, track transactions, and instantly explore verified organic suppliers.</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-4 relative z-10">
+          <button onClick={() => navigate('/dashboard/marketplace')} className="bg-white hover:bg-gray-50 text-primary px-6 py-3 rounded-xl font-bold transition-all flex items-center shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)] hover:-translate-y-0.5 animate-pulse-slow">
+            <ShoppingCart className="w-5 h-5 mr-2" /> 
             Enter Marketplace
           </button>
-          <button onClick={() => navigate('/dashboard/my-enquiries')} className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-5 py-2.5 rounded-lg font-medium transition-colors shadow-sm">
+          <button onClick={() => navigate('/dashboard/my-enquiries')} className="bg-gray-800/50 hover:bg-gray-800 border border-gray-600 text-white px-5 py-3 rounded-xl font-medium transition-colors shadow-sm backdrop-blur-sm">
             View Active Enquiries
           </button>
         </div>
@@ -242,45 +244,43 @@ const BuyerDashboard: React.FC = () => {
       {/* Dynamic Action Center & Pinned Items Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
-        {/* Action Center */}
+        {/* Action Center (Recent Activity) */}
         <div className="bg-white shadow-sm rounded-xl border border-gray-100 overflow-hidden flex flex-col">
           <div className="px-6 py-5 border-b border-gray-200 bg-gray-50/50 flex justify-between items-center">
             <h3 className="text-lg leading-6 font-bold text-gray-900 flex items-center">
-              <AlertCircle className="w-5 h-5 mr-2 text-orange-500" /> Action Center
+              <Clock className="w-5 h-5 mr-2 text-blue-500" /> Action Center (Recent Activity)
             </h3>
-            <span className="bg-orange-100 text-orange-800 text-xs font-bold px-2.5 py-0.5 rounded-full">{allActionableItems.length} Pending</span>
           </div>
           <div className="p-6 flex-1 bg-white">
-            {allActionableItems.length === 0 ? (
+            {recentActions.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-gray-500 py-8">
                 <CheckCircle className="w-12 h-12 text-gray-300 mb-3" />
-                <p>You're all caught up!</p>
+                <p>No recent activity in this session.</p>
               </div>
             ) : (
               <div className="space-y-4">
-                {allActionableItems.map((item, idx) => (
-                  <div key={`${item.id}-${idx}`} className="flex items-center justify-between p-4 rounded-xl border border-gray-200 hover:border-primary/30 hover:shadow-md transition-all group bg-white cursor-pointer" onClick={() => navigate(item.actionUrl)}>
+                {recentActions.map((item, idx) => (
+                  <div key={item.id} className="flex items-center justify-between p-4 rounded-xl border border-gray-200 hover:border-primary/30 hover:shadow-md transition-all group bg-white cursor-pointer" onClick={() => navigate(item.actionUrl)}>
                     <div className="flex items-center flex-1">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-4 
-                        ${item.type === 'signature' ? 'bg-blue-100 text-blue-600' : 
-                          item.type === 'payment' ? 'bg-red-100 text-red-600' : 'bg-orange-100 text-orange-600'}`}>
-                        {item.type === 'signature' && <FileSignature className="w-5 h-5" />}
-                        {item.type === 'payment' && <CreditCard className="w-5 h-5" />}
-                        {item.type === 'quotation' && <MessageSquare className="w-5 h-5" />}
+                        ${item.iconType === 'enquiry' ? 'bg-blue-100 text-blue-600' : 
+                          item.iconType === 'contract' ? 'bg-teal-100 text-teal-600' : 
+                          item.iconType === 'payment' ? 'bg-red-100 text-red-600' : 
+                          item.iconType === 'order' ? 'bg-purple-100 text-purple-600' : 
+                          item.iconType === 'quotation' ? 'bg-yellow-100 text-yellow-600' : 'bg-gray-100 text-gray-600'}`}>
+                        {item.iconType === 'enquiry' && <MessageSquare className="w-5 h-5" />}
+                        {item.iconType === 'contract' && <FileSignature className="w-5 h-5" />}
+                        {item.iconType === 'payment' && <CreditCard className="w-5 h-5" />}
+                        {item.iconType === 'order' && <Package className="w-5 h-5" />}
+                        {item.iconType === 'quotation' && <FileText className="w-5 h-5" />}
+                        {item.iconType === 'general' && <CheckCircle className="w-5 h-5" />}
                       </div>
                       <div>
                         <p className="font-bold text-gray-900 text-sm group-hover:text-primary transition-colors">{item.title}</p>
-                        <p className="text-xs text-gray-500 font-mono mt-1">{item.refId}</p>
+                        {item.description && <p className="text-xs text-gray-500 mt-1">{item.description}</p>}
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <button 
-                        onClick={(e) => handlePin(item.id, e)}
-                        className={`p-2 rounded-lg transition-colors ${pinnedIds.includes(item.id) ? 'bg-primary text-white' : 'text-gray-400 hover:bg-gray-100'}`}
-                        title={pinnedIds.includes(item.id) ? "Unpin" : "Pin to Dashboard"}
-                      >
-                        <Pin className="w-4 h-4" />
-                      </button>
                       <button className="p-2 text-gray-400 group-hover:text-primary transition-colors">
                         <ChevronRight className="w-5 h-5" />
                       </button>
@@ -295,37 +295,42 @@ const BuyerDashboard: React.FC = () => {
         {/* Pinned Items & Timeline Tracker */}
         <div className="space-y-6 flex flex-col">
           
-          {/* Pinned Items */}
+          {/* Pinned Items (Actionable Items) */}
           <div className="bg-white shadow-sm rounded-xl border border-gray-100 overflow-hidden flex-1">
             <div className="px-6 py-5 border-b border-gray-200 bg-gray-50/50 flex justify-between items-center">
               <h3 className="text-lg leading-6 font-bold text-gray-900 flex items-center">
-                <Pin className="w-5 h-5 mr-2 text-primary" /> Pinned Items
+                <Pin className="w-5 h-5 mr-2 text-orange-500" /> Pinned Items (Pending)
               </h3>
+              <span className="bg-orange-100 text-orange-800 text-xs font-bold px-2.5 py-0.5 rounded-full">{allActionableItems.length} Pending</span>
             </div>
             <div className="p-6 bg-white min-h-[200px]">
-              {allPinnedItems.length === 0 ? (
+              {allActionableItems.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-gray-500 py-8">
-                  <Pin className="w-12 h-12 text-gray-300 mb-3" />
-                  <p className="text-sm text-center">Pin ongoing negotiations or contracts here<br/>to monitor them closely.</p>
+                  <CheckCircle className="w-12 h-12 text-gray-300 mb-3" />
+                  <p className="text-sm text-center">You're all caught up!</p>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {allPinnedItems.map((item, idx) => (
-                    <div key={`${item.id}-${idx}`} onClick={() => navigate(item.actionUrl)} className="flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer group">
-                      <div>
-                        <p className="font-semibold text-gray-900 text-sm group-hover:text-primary">{item.title}</p>
-                        <div className="flex items-center mt-1">
-                          <span className="text-xs text-gray-500 font-mono mr-2">{item.refId}</span>
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 uppercase tracking-wider">{item.status}</span>
+                  {allActionableItems.map((item, idx) => (
+                    <div key={`${item.id}-${idx}`} onClick={() => navigate(item.actionUrl)} className="flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:bg-orange-50 cursor-pointer group">
+                      <div className="flex items-center flex-1">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 
+                          ${item.type === 'signature' ? 'bg-blue-100 text-blue-600' : 
+                            item.type === 'payment' ? 'bg-red-100 text-red-600' : 
+                            item.type === 'order' ? 'bg-purple-100 text-purple-600' : 'bg-orange-100 text-orange-600'}`}>
+                          {item.type === 'signature' && <FileSignature className="w-4 h-4" />}
+                          {item.type === 'payment' && <CreditCard className="w-4 h-4" />}
+                          {item.type === 'quotation' && <MessageSquare className="w-4 h-4" />}
+                          {item.type === 'order' && <Package className="w-4 h-4" />}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-900 text-sm group-hover:text-primary leading-tight">{item.title}</p>
+                          <div className="flex items-center mt-1">
+                            <span className="text-xs text-gray-500 font-mono mr-2">{item.refId}</span>
+                          </div>
                         </div>
                       </div>
-                      <button 
-                        onClick={(e) => handlePin(item.id, e)}
-                        className="p-1.5 text-primary hover:bg-primary/10 rounded-md"
-                        title="Unpin"
-                      >
-                        <Pin className="w-4 h-4 fill-current" />
-                      </button>
+                      <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-primary transition-colors flex-shrink-0" />
                     </div>
                   ))}
                 </div>

@@ -57,7 +57,7 @@ const SPContractDashboard: React.FC = () => {
 
   const getActionText = (contract: DigitalContract) => {
     if (contract.status === 'Draft') return 'Resume Draft';
-    if (contract.status === 'Pending Buyer Review') return 'View Status';
+    if (contract.status === 'Pending Buyer Review') return 'View Contract';
     if (contract.status === 'Legally Executed' && !contract.paymentConfigured) return 'Configure Payments';
     if (['Payment Pending', 'Partially Paid', 'Fully Paid'].includes(contract.status)) return 'View Ledger';
     return 'View Contract';

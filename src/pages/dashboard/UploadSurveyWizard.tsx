@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useYieldSurvey } from '../../context/YieldSurveyContext';
 import type { SurveyPhase } from '../../context/YieldSurveyContext';
 import { UploadCloud, FileText, CheckCircle2, ChevronRight, ChevronLeft, AlertCircle, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import toast from 'react-hot-toast';
 import clsx from 'clsx';
 
 const mockExtractedData = {
@@ -42,11 +43,11 @@ const UploadSurveyWizard: React.FC = () => {
 
   const handleNext = () => {
     if (step === 2 && !certFile) {
-      alert(`Please upload the mandatory ${formData.phase === 'Phase 1 - Estimated' ? 'Scoped Certificate' : 'Transaction Certificate'}`);
+      toast.error(`Please upload the mandatory ${formData.phase === 'Phase 1 - Estimated' ? 'Scoped Certificate' : 'Transaction Certificate'}`);
       return;
     }
     if (step === 3 && !extractedGrid) {
-      alert("Please upload and validate the Survey Excel sheet.");
+      toast.error("Please upload and validate the Survey Excel sheet.");
       return;
     }
     setStep(prev => prev + 1);

@@ -1,22 +1,23 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ClipboardCheck, MapPin, AlertCircle, Calendar, CheckCircle2, Clock, XCircle, ArrowRight, FileText, Search, Pin, ChevronRight, MessageSquare, FileSignature, CreditCard, X } from 'lucide-react';
+import { ClipboardCheck, MapPin, AlertCircle, Calendar, CheckCircle2, Clock, XCircle, ArrowRight, FileText, Search, Pin, ChevronRight, MessageSquare, FileSignature, CreditCard, X, Package } from 'lucide-react';
 import { useServiceProvider } from '../../context/ServiceProviderContext';
 import { useContract } from '../../context/ContractContext';
 import { useNegotiation } from '../../context/NegotiationContext';
+import { useOrder } from '../../context/OrderContext';
+import { useActionCenter } from '../../context/ActionCenterContext';
 
 const ICSDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { applications } = useServiceProvider();
   const { contracts } = useContract();
   const { enquiries } = useNegotiation();
+  const { orders } = useOrder();
+  const { recentActions } = useActionCenter();
   
   // For the prototype, we display the progress of the most recently submitted application
   const myApp = applications[0];
 
-  // Pinned items state (simulate localStorage persistence)
-  const [pinnedIds, setPinnedIds] = useState<string[]>([]);
-  
   // Timeline Tracker state
   const [trackerSearch, setTrackerSearch] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -33,28 +34,23 @@ const ICSDashboard: React.FC = () => {
 
   // Derive Actionable Items for SELLER
   const newEnquiries = enquiries.filter(e => e.status === 'New Enquiry' || e.status === 'Counter Offer');
+  const pendingContractGenerations = enquiries.filter(e => e.status === 'Converted to Digital Contract');
   const draftContracts = contracts.filter(c => c.status === 'Draft');
   const activeContracts = contracts.filter(c => c.status === 'Legally Executed' || c.status === 'Partially Paid');
+  const actionableOrders = orders.filter(o => 
+    ['Ready for Dispatch', 'Handed Over to Logistics Partner', 'Delivery Address Confirmed', 'Preparing Order', 'Quality Inspection Completed', 'Packaging Completed'].includes(o.status) || 
+    (o.status === 'Way Bill Generated' && !o.wayBillDetails?.wayBillNumber)
+  );
 
   const allActionableItems = [
     ...newEnquiries.map(e => ({ id: e.id, refId: e.id, title: `Action Required - ${e.product} (${e.status})`, type: 'quotation', actionUrl: `/dashboard/negotiation/${e.id}` })),
+    ...pendingContractGenerations.map(e => ({ id: e.id, refId: e.id, title: `Purchase Intent Received - Generate Contract`, type: 'signature', actionUrl: `/dashboard/negotiation/${e.id}` })),
     ...draftContracts.map(c => ({ id: c.id, refId: c.enquiryId, title: `Contract Draft - Ready to Send`, type: 'signature', actionUrl: `/dashboard/sp-contracts` })),
-    ...activeContracts.map(c => ({ id: c.id, refId: c.contractRef || 'Executed Ref', title: `Active Contract - Manage Payments`, type: 'payment', actionUrl: `/dashboard/sp-contracts` }))
+    ...activeContracts.map(c => ({ id: c.id, refId: c.contractRef || 'Executed Ref', title: `Active Contract - Manage Payments`, type: 'payment', actionUrl: `/dashboard/sp-contracts` })),
+    ...actionableOrders.map(o => ({ id: o.id, refId: o.contractRef || o.id, title: `Order Action Required - ${o.status}`, type: 'order', actionUrl: `/dashboard/orders/${o.id}` }))
   ];
 
-  // Derive Pinned Items
-  const pinnedEnquiries = enquiries.filter(e => pinnedIds.includes(e.id)).map(e => ({ id: e.id, refId: e.id, title: `Enquiry Active - ${e.product}`, status: e.status, actionUrl: `/dashboard/negotiation/${e.id}` }));
-  const pinnedContracts = contracts.filter(c => pinnedIds.includes(c.id)).map(c => ({ id: c.id, refId: c.contractRef || 'Pending Ref', title: `Contract Active - ${c.product}`, status: c.status, actionUrl: `/dashboard/sp-contracts` }));
-  const allPinnedItems = [...pinnedEnquiries, ...pinnedContracts];
-
-  const handlePin = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (pinnedIds.includes(id)) {
-      setPinnedIds(pinnedIds.filter(pid => pid !== id));
-    } else {
-      setPinnedIds([...pinnedIds, id]);
-    }
-  };
+  // We removed the derived recentActivities because we now use recentActions from ActionCenterContext
 
   const handleTrackerSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -238,46 +234,43 @@ const ICSDashboard: React.FC = () => {
 
       {/* Dynamic Action Center & Pinned Items Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        {/* Action Center */}
+                {/* Action Center (Recent Activity) */}
         <div className="bg-white shadow-sm rounded-xl border border-gray-100 overflow-hidden flex flex-col">
           <div className="px-6 py-5 border-b border-gray-200 bg-gray-50/50 flex justify-between items-center">
             <h3 className="text-lg leading-6 font-bold text-gray-900 flex items-center">
-              <AlertCircle className="w-5 h-5 mr-2 text-orange-500" /> Action Center
+              <Clock className="w-5 h-5 mr-2 text-blue-500" /> Action Center (Recent Activity)
             </h3>
-            <span className="bg-orange-100 text-orange-800 text-xs font-bold px-2.5 py-0.5 rounded-full">{allActionableItems.length} Pending</span>
           </div>
           <div className="p-6 flex-1 bg-white">
-            {allActionableItems.length === 0 ? (
+            {recentActions.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-gray-500 py-8">
                 <CheckCircle2 className="w-12 h-12 text-gray-300 mb-3" />
-                <p>You're all caught up!</p>
+                <p>No recent activity in this session.</p>
               </div>
             ) : (
               <div className="space-y-4">
-                {allActionableItems.map((item, idx) => (
-                  <div key={`${item.id}-${idx}`} className="flex items-center justify-between p-4 rounded-xl border border-gray-200 hover:border-primary/30 hover:shadow-md transition-all group bg-white cursor-pointer" onClick={() => navigate(item.actionUrl)}>
+                {recentActions.map((item, idx) => (
+                  <div key={item.id} className="flex items-center justify-between p-4 rounded-xl border border-gray-200 hover:border-primary/30 hover:shadow-md transition-all group bg-white cursor-pointer" onClick={() => navigate(item.actionUrl)}>
                     <div className="flex items-center flex-1">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-4 
-                        ${item.type === 'signature' ? 'bg-blue-100 text-blue-600' : 
-                          item.type === 'payment' ? 'bg-red-100 text-red-600' : 'bg-orange-100 text-orange-600'}`}>
-                        {item.type === 'signature' && <FileSignature className="w-5 h-5" />}
-                        {item.type === 'payment' && <CreditCard className="w-5 h-5" />}
-                        {item.type === 'quotation' && <MessageSquare className="w-5 h-5" />}
+                        ${item.iconType === 'enquiry' ? 'bg-blue-100 text-blue-600' : 
+                          item.iconType === 'contract' ? 'bg-teal-100 text-teal-600' : 
+                          item.iconType === 'payment' ? 'bg-red-100 text-red-600' : 
+                          item.iconType === 'order' ? 'bg-purple-100 text-purple-600' : 
+                          item.iconType === 'quotation' ? 'bg-yellow-100 text-yellow-600' : 'bg-gray-100 text-gray-600'}`}>
+                        {item.iconType === 'enquiry' && <MessageSquare className="w-5 h-5" />}
+                        {item.iconType === 'contract' && <FileSignature className="w-5 h-5" />}
+                        {item.iconType === 'payment' && <CreditCard className="w-5 h-5" />}
+                        {item.iconType === 'order' && <Package className="w-5 h-5" />}
+                        {item.iconType === 'quotation' && <FileText className="w-5 h-5" />}
+                        {item.iconType === 'general' && <CheckCircle2 className="w-5 h-5" />}
                       </div>
                       <div>
                         <p className="font-bold text-gray-900 text-sm group-hover:text-primary transition-colors">{item.title}</p>
-                        <p className="text-xs text-gray-500 font-mono mt-1">{item.refId}</p>
+                        {item.description && <p className="text-xs text-gray-500 mt-1">{item.description}</p>}
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <button 
-                        onClick={(e) => handlePin(item.id, e)}
-                        className={`p-2 rounded-lg transition-colors ${pinnedIds.includes(item.id) ? 'bg-primary text-white' : 'text-gray-400 hover:bg-gray-100'}`}
-                        title={pinnedIds.includes(item.id) ? "Unpin" : "Pin to Dashboard"}
-                      >
-                        <Pin className="w-4 h-4" />
-                      </button>
                       <button className="p-2 text-gray-400 group-hover:text-primary transition-colors">
                         <ChevronRight className="w-5 h-5" />
                       </button>
@@ -289,43 +282,51 @@ const ICSDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Pinned Items */}
-        <div className="bg-white shadow-sm rounded-xl border border-gray-100 overflow-hidden flex-1">
-          <div className="px-6 py-5 border-b border-gray-200 bg-gray-50/50 flex justify-between items-center">
-            <h3 className="text-lg leading-6 font-bold text-gray-900 flex items-center">
-              <Pin className="w-5 h-5 mr-2 text-primary" /> Pinned Items
-            </h3>
-          </div>
-          <div className="p-6 bg-white min-h-[200px]">
-            {allPinnedItems.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-gray-500 py-8">
-                <Pin className="w-12 h-12 text-gray-300 mb-3" />
-                <p className="text-sm text-center">Pin ongoing negotiations or contracts here<br/>to monitor them closely.</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {allPinnedItems.map((item, idx) => (
-                  <div key={`${item.id}-${idx}`} onClick={() => navigate(item.actionUrl)} className="flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer group">
-                    <div>
-                      <p className="font-semibold text-gray-900 text-sm group-hover:text-primary">{item.title}</p>
-                      <div className="flex items-center mt-1">
-                        <span className="text-xs text-gray-500 font-mono mr-2">{item.refId}</span>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 uppercase tracking-wider">{item.status}</span>
+        {/* Pinned Items & Timeline Tracker */}
+        <div className="space-y-6 flex flex-col">
+          
+          {/* Pinned Items (Actionable Items) */}
+          <div className="bg-white shadow-sm rounded-xl border border-gray-100 overflow-hidden flex-1">
+            <div className="px-6 py-5 border-b border-gray-200 bg-gray-50/50 flex justify-between items-center">
+              <h3 className="text-lg leading-6 font-bold text-gray-900 flex items-center">
+                <Pin className="w-5 h-5 mr-2 text-orange-500" /> Pinned Items (Pending)
+              </h3>
+              <span className="bg-orange-100 text-orange-800 text-xs font-bold px-2.5 py-0.5 rounded-full">{allActionableItems.length} Pending</span>
+            </div>
+            <div className="p-6 bg-white min-h-[200px]">
+              {allActionableItems.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-gray-500 py-8">
+                  <CheckCircle2 className="w-12 h-12 text-gray-300 mb-3" />
+                  <p className="text-sm text-center">You're all caught up!</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {allActionableItems.map((item, idx) => (
+                    <div key={`${item.id}-${idx}`} onClick={() => navigate(item.actionUrl)} className="flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:bg-orange-50 cursor-pointer group">
+                      <div className="flex items-center flex-1">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 
+                          ${item.type === 'signature' ? 'bg-blue-100 text-blue-600' : 
+                            item.type === 'payment' ? 'bg-red-100 text-red-600' : 
+                            item.type === 'order' ? 'bg-purple-100 text-purple-600' : 'bg-orange-100 text-orange-600'}`}>
+                          {item.type === 'signature' && <FileSignature className="w-4 h-4" />}
+                          {item.type === 'payment' && <CreditCard className="w-4 h-4" />}
+                          {item.type === 'quotation' && <MessageSquare className="w-4 h-4" />}
+                          {item.type === 'order' && <Package className="w-4 h-4" />}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-900 text-sm group-hover:text-primary leading-tight">{item.title}</p>
+                          <div className="flex items-center mt-1">
+                            <span className="text-xs text-gray-500 font-mono mr-2">{item.refId}</span>
+                          </div>
+                        </div>
                       </div>
+                      <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-primary transition-colors flex-shrink-0" />
                     </div>
-                    <button 
-                      onClick={(e) => handlePin(item.id, e)}
-                      className="p-1.5 text-primary hover:bg-primary/10 rounded-md"
-                      title="Unpin"
-                    >
-                      <Pin className="w-4 h-4 fill-current" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>  </div>
       </div>
 
     </div>

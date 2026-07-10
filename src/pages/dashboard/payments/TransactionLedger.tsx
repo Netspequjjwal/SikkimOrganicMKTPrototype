@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useContract } from '../../../context/ContractContext';
 import { useAuth } from '../../../context/AuthContext';
 import { Search, Filter, Download, ArrowUpRight, CheckCircle, Clock } from 'lucide-react';
@@ -7,6 +8,7 @@ import clsx from 'clsx';
 const TransactionLedger: React.FC = () => {
   const { contracts } = useContract();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
 
@@ -14,6 +16,7 @@ const TransactionLedger: React.FC = () => {
   const allTransactions = contracts.flatMap(c => 
     c.paymentMilestones.map(m => ({
       ...m,
+      contractId: c.id,
       contractRef: c.contractRef,
       buyerName: c.buyerName,
       supplierName: c.supplierName,
@@ -174,9 +177,19 @@ const TransactionLedger: React.FC = () => {
                         <CheckCircle className="w-3 h-3 mr-1" /> Settled
                       </span>
                     ) : (
-                      <span className="inline-flex items-center bg-orange-100 text-orange-800 text-xs px-2.5 py-1 rounded-md font-bold uppercase tracking-wider">
-                        <Clock className="w-3 h-3 mr-1" /> Pending
-                      </span>
+                      <div className="flex items-center justify-end space-x-3">
+                        <span className="inline-flex items-center bg-orange-100 text-orange-800 text-xs px-2.5 py-1 rounded-md font-bold uppercase tracking-wider">
+                          <Clock className="w-3 h-3 mr-1" /> Pending
+                        </span>
+                        {user?.role === 'BUYER' && (
+                          <button 
+                            onClick={() => navigate(`/dashboard/payments/gateway/${tx.contractId}`)}
+                            className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded text-xs font-bold transition-colors"
+                          >
+                            Pay Now
+                          </button>
+                        )}
+                      </div>
                     )}
                   </td>
                 </tr>

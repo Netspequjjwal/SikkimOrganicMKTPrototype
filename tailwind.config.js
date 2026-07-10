@@ -34,6 +34,7 @@ export default {
       animation: {
         slideLeft: 'slideLeft 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
         fadeIn: 'fadeIn 0.3s ease-out forwards',
+        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       }
     },
   },

@@ -4,7 +4,9 @@ import { useContract, type DigitalContract, type ContractClause } from '../../..
 import { useNegotiation } from '../../../context/NegotiationContext';
 import { useNotification } from '../../../context/NotificationContext';
 import { FileSignature, Save, Send, AlertCircle, Plus, Trash2, CheckCircle, Shield } from 'lucide-react';
+import toast from 'react-hot-toast';
 import clsx from 'clsx';
+import TransactionMap from '../../../components/common/TransactionMap';
 
 const ContractGeneration: React.FC = () => {
   const { enquiryId } = useParams();
@@ -47,7 +49,7 @@ const ContractGeneration: React.FC = () => {
 
   const handleSaveNewClause = () => {
     if (!newClauseForm.title.trim() || !newClauseForm.content.trim()) {
-      alert("Please enter a title and content for the clause.");
+      toast.error("Please enter a title and content for the clause.");
       return;
     }
     const newClause: ContractClause = {
@@ -83,7 +85,9 @@ const ContractGeneration: React.FC = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto">
+    <div className="max-w-4xl mx-auto space-y-6">
+      <TransactionMap contractId={contract.id} currentStep="contract" />
+      
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Contract Generation Workspace</h1>

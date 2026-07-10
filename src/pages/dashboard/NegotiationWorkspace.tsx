@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 import { useNegotiation } from '../../context/NegotiationContext';
 import { useNotification } from '../../context/NotificationContext';
+import { useActionCenter } from '../../context/ActionCenterContext';
 import { useContract } from '../../context/ContractContext';
 import { ArrowLeft, Send, Paperclip, CheckCircle2, AlertCircle, FileText, Download, Clock, Briefcase, FileSignature, X } from 'lucide-react';
 import clsx from 'clsx';
+import TransactionMap from '../../components/common/TransactionMap';
 
 const NegotiationWorkspace: React.FC = () => {
   const { enquiryId } = useParams();
@@ -13,6 +16,7 @@ const NegotiationWorkspace: React.FC = () => {
   const { user } = useAuth();
   const { enquiries, addMessage, updateStatus } = useNegotiation();
   const { triggerSMS, triggerEmail } = useNotification();
+  const { logAction } = useActionCenter();
   const { contracts } = useContract();
   
   const [draftMessage, setDraftMessage] = useState('');
@@ -51,7 +55,7 @@ const NegotiationWorkspace: React.FC = () => {
 
   const handleUploadQuotation = () => {
     if (!quoteForm.file || !quoteForm.price || !quoteForm.total) {
-      alert("Please fill all fields and select a file.");
+      toast.error("Please fill all fields and select a file.");
       return;
     }
     
@@ -81,16 +85,37 @@ const NegotiationWorkspace: React.FC = () => {
       'PDF'
     );
     
+    logAction({
+      title: `Quotation Sent to ${enquiry.buyerName}`,
+      description: `For ${enquiry.quantityRequested} ${enquiry.uom} of ${enquiry.product}`,
+      iconType: 'quotation' as any, // fallback to general if strict type check
+      actionUrl: `/dashboard/negotiation/${enquiry.id}`
+    });
+    
     setShowUploadModal(false);
   };
 
   const handleAcceptContract = () => {
     updateStatus(enquiry.id, 'Converted to Digital Contract');
+    
+    addMessage(enquiry.id, {
+      sender: 'Buyer',
+      text: '',
+      isPurchaseIntent: true
+    });
+
     if (isBuyer) {
       triggerSMS(
         enquiry.supplierName,
         `Sikkim Organic: ${enquiry.buyerName} has sent a Purchase Intent for ${enquiry.id}. Please generate the digital contract.`
       );
+      
+      logAction({
+        title: `Purchase Intent Sent to ${enquiry.supplierName}`,
+        description: `Waiting for supplier to generate the contract for ${enquiry.product}.`,
+        iconType: 'contract',
+        actionUrl: `/dashboard/negotiation/${enquiry.id}`
+      });
     } else {
       navigate(`/dashboard/contracts/generate/${enquiry.id}`);
     }
@@ -221,41 +246,54 @@ const NegotiationWorkspace: React.FC = () => {
                 
                 <div className={clsx(
                   "px-5 py-3 rounded-2xl shadow-sm relative",
-                  isMe ? "bg-primary text-white rounded-tr-none" : "bg-white border border-gray-200 text-gray-800 rounded-tl-none"
+                  msg.isPurchaseIntent 
+                    ? (isMe ? "bg-green-50 border border-green-200 text-green-900 rounded-tr-none" : "bg-green-50 border border-green-200 text-green-900 rounded-tl-none")
+                    : (isMe ? "bg-primary text-white rounded-tr-none" : "bg-white border border-gray-200 text-gray-800 rounded-tl-none")
                 )}>
-                  {msg.text && <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.text}</p>}
-                  
-                  {msg.isQuotation && msg.quotationDetails && (
-                    <div className={clsx("mt-3 p-4 rounded-xl border", isMe ? "bg-primary-dark/30 border-white/20" : "bg-gray-50 border-gray-200")}>
-                      <div className="flex justify-between items-center mb-3 pb-3 border-b border-opacity-20 border-current">
-                        <div className="flex items-center">
-                          <FileText className="w-6 h-6 mr-2 opacity-80" />
-                          <div>
-                            <p className="text-xs font-bold uppercase tracking-wider opacity-80">Official Quotation</p>
-                            <p className="text-sm font-medium">{msg.attachmentName}</p>
+                  {msg.isPurchaseIntent ? (
+                    <div className="flex items-center space-x-3 py-1">
+                      <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+                      <p className="text-sm font-semibold">
+                        {isBuyer ? `Purchase intent has been sent to ${enquiry.supplierName}` : `${enquiry.buyerName} has sent a purchase intent`}
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      {msg.text && <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.text}</p>}
+                      
+                      {msg.isQuotation && msg.quotationDetails && (
+                        <div className={clsx("mt-3 p-4 rounded-xl border", isMe ? "bg-primary-dark/30 border-white/20" : "bg-gray-50 border-gray-200")}>
+                          <div className="flex justify-between items-center mb-3 pb-3 border-b border-opacity-20 border-current">
+                            <div className="flex items-center">
+                              <FileText className="w-6 h-6 mr-2 opacity-80" />
+                              <div>
+                                <p className="text-xs font-bold uppercase tracking-wider opacity-80">Official Quotation</p>
+                                <p className="text-sm font-medium">{msg.attachmentName}</p>
+                              </div>
+                            </div>
+                            {msg.fileUrl ? (
+                              <a href={msg.fileUrl} download={msg.attachmentName} className="opacity-80 hover:opacity-100 bg-black/10 p-2 rounded-full cursor-pointer inline-flex">
+                                <Download className="w-4 h-4" />
+                              </a>
+                            ) : (
+                              <button className="opacity-80 hover:opacity-100 bg-black/10 p-2 rounded-full cursor-not-allowed">
+                                <Download className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <p className="text-xs opacity-70 mb-0.5">Price Per Unit</p>
+                              <p className="font-bold font-mono">₹{msg.quotationDetails.pricePerUnit.toLocaleString()} / {enquiry.uom}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs opacity-70 mb-0.5">Total Amount</p>
+                              <p className="font-bold font-mono">₹{msg.quotationDetails.totalAmount.toLocaleString()}</p>
+                            </div>
                           </div>
                         </div>
-                        {msg.fileUrl ? (
-                          <a href={msg.fileUrl} download={msg.attachmentName} className="opacity-80 hover:opacity-100 bg-black/10 p-2 rounded-full cursor-pointer inline-flex">
-                            <Download className="w-4 h-4" />
-                          </a>
-                        ) : (
-                          <button className="opacity-80 hover:opacity-100 bg-black/10 p-2 rounded-full cursor-not-allowed">
-                            <Download className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <p className="text-xs opacity-70 mb-0.5">Price Per Unit</p>
-                          <p className="font-bold font-mono">₹{msg.quotationDetails.pricePerUnit.toLocaleString()} / {enquiry.uom}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs opacity-70 mb-0.5">Total Amount</p>
-                          <p className="font-bold font-mono">₹{msg.quotationDetails.totalAmount.toLocaleString()}</p>
-                        </div>
-                      </div>
-                    </div>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
@@ -263,8 +301,24 @@ const NegotiationWorkspace: React.FC = () => {
           })}
         </div>
 
-        {/* Message Input */}
-        {enquiry.status !== 'Converted to Digital Contract' && enquiry.status !== 'Negotiation Declined' && (
+        {/* Message Input or Next Steps CTA */}
+        {enquiry.status === 'Converted to Digital Contract' ? (
+          <div className="p-4 bg-white border-t border-gray-200 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)] z-10">
+            {isBuyer ? (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+                <Clock className="w-8 h-8 text-blue-500 mx-auto mb-2" />
+                <h4 className="font-bold text-blue-900">Awaiting Digital Contract</h4>
+                <p className="text-blue-800 text-sm mt-1">The Service Provider is currently drafting the legally binding digital contract.</p>
+              </div>
+            ) : (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                <CheckCircle2 className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                <h4 className="font-bold text-green-900">Purchase Intent Received</h4>
+                <p className="text-green-800 text-sm mt-1">Please proceed to generate the digital contract using the button in the left panel.</p>
+              </div>
+            )}
+          </div>
+        ) : (enquiry.status !== 'Negotiation Declined') ? (
           <div className="p-4 bg-white border-t border-gray-200 flex items-end space-x-3 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)] z-10">
             <button className="p-3 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0">
               <Paperclip className="w-5 h-5" />
@@ -290,7 +344,7 @@ const NegotiationWorkspace: React.FC = () => {
               <Send className="w-5 h-5 ml-0.5" />
             </button>
           </div>
-        )}
+        ) : null}
       </div>
       {/* Upload Quotation Modal */}
       {showUploadModal && (
