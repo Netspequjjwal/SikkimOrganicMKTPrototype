@@ -12,12 +12,18 @@ import { ContractProvider } from './context/ContractContext';
 import { OrderProvider } from './context/OrderContext';
 import { ActionCenterProvider } from './context/ActionCenterContext';
 import { TCProviderWrapper } from './context/TCContext';
+import { BuyerRegistrationProvider } from './context/BuyerRegistrationContext';
 import { Toaster } from 'react-hot-toast';
 
 import AgriDeptDashboard from './pages/dashboard/AgriDeptDashboard';
 import ICSDashboard from './pages/dashboard/ICSDashboard';
 import FarmerDashboard from './pages/dashboard/FarmerDashboard';
 import BuyerDashboard from './pages/dashboard/BuyerDashboard';
+import BuyerRegistrationWizard from './pages/dashboard/BuyerRegistrationWizard';
+import BuyerApprovals from './pages/dashboard/BuyerApprovals';
+import BuyerApplicationDetails from './pages/dashboard/BuyerApplicationDetails';
+import CertificateRenewalWizard from './pages/dashboard/CertificateRenewalWizard';
+import BuyerTrustProfile from './pages/dashboard/BuyerTrustProfile';
 import ServiceProviderRegistration from './pages/dashboard/ServiceProviderRegistration';
 import RegistrationSuccess from './pages/dashboard/RegistrationSuccess';
 import ServiceProviderApprovals from './pages/dashboard/ServiceProviderApprovals';
@@ -101,10 +107,11 @@ function App() {
                 <NegotiationProvider>
                   <ContractProvider>
                     <OrderProvider>
-                      <Router>
-                        <Toaster position="top-right" />
-                        <NotificationOverlay />
-                        <ActionCenterProvider>
+                      <BuyerRegistrationProvider>
+                        <Router>
+                          <Toaster position="top-right" />
+                          <NotificationOverlay />
+                          <ActionCenterProvider>
                           <Routes>
                             <Route path="/" element={<MainLayout />}>
                               <Route index element={<Home />} />
@@ -119,9 +126,14 @@ function App() {
                               <Route index element={<DashboardRouter />} />
                               
                               {/* Common Dashboards */}
+                              <Route path="buyer-registration" element={<BuyerRegistrationWizard />} />
                               <Route path="sp-registration" element={<ServiceProviderRegistration />} />
                               <Route path="registration-success" element={<RegistrationSuccess />} />
+                              <Route path="certificate-renewal" element={<CertificateRenewalWizard />} />
                               <Route path="sp-approvals" element={<ServiceProviderApprovals />} />
+                              <Route path="buyer-approvals" element={<BuyerApprovals />} />
+                              <Route path="buyer-approvals/:id" element={<BuyerApplicationDetails />} />
+                              <Route path="buyer-profile/:id" element={<BuyerTrustProfile />} />
                               <Route path="survey" element={<UploadSurveyWizard />} />
                               <Route path="survey-success" element={<SurveySuccess />} />
                               <Route path="survey-approvals" element={<SurveyApprovals />} />
@@ -170,8 +182,9 @@ function App() {
                               <Route path="fpo/publish" element={<PublishProduct />} />
                             </Route>
                           </Routes>
-                        </ActionCenterProvider>
-                      </Router>
+                          </ActionCenterProvider>
+                        </Router>
+                      </BuyerRegistrationProvider>
                     </OrderProvider>
                   </ContractProvider>
                 </NegotiationProvider>

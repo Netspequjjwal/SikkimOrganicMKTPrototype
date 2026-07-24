@@ -1,6 +1,7 @@
 import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Users, Sprout, ShoppingCart, TrendingUp } from 'lucide-react';
+import { Users, Sprout, ShoppingCart, TrendingUp, Briefcase, FileCheck } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const data = [
   { name: 'Jan', value: 4000 },
@@ -12,6 +13,7 @@ const data = [
 ];
 
 const AgriDeptDashboard: React.FC = () => {
+  const navigate = useNavigate();
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       <div>
@@ -46,6 +48,41 @@ const AgriDeptDashboard: React.FC = () => {
             </div>
           );
         })}
+      </div>
+
+      {/* Action / Quick Links */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <button 
+          onClick={() => navigate('/dashboard/sp-approvals')}
+          className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between hover:border-primary hover:shadow-md transition-all group"
+        >
+          <div className="flex items-center">
+            <div className="bg-primary/10 p-3 rounded-lg mr-4 text-primary group-hover:scale-110 transition-transform">
+              <Briefcase className="w-6 h-6" />
+            </div>
+            <div className="text-left">
+              <h3 className="font-bold text-gray-900">Service Provider Approvals</h3>
+              <p className="text-sm text-gray-500">Review pending SP applications</p>
+            </div>
+          </div>
+          <span className="bg-orange-100 text-orange-600 text-xs font-bold px-2.5 py-1 rounded-full">12 Pending</span>
+        </button>
+
+        <button 
+          onClick={() => navigate('/dashboard/buyer-approvals')}
+          className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between hover:border-primary hover:shadow-md transition-all group"
+        >
+          <div className="flex items-center">
+            <div className="bg-blue-100 p-3 rounded-lg mr-4 text-blue-600 group-hover:scale-110 transition-transform">
+              <FileCheck className="w-6 h-6" />
+            </div>
+            <div className="text-left">
+              <h3 className="font-bold text-gray-900">Buyer Approvals</h3>
+              <p className="text-sm text-gray-500">Review pending Organic Buyer applications</p>
+            </div>
+          </div>
+          <span className="bg-orange-100 text-orange-600 text-xs font-bold px-2.5 py-1 rounded-full">24 Pending</span>
+        </button>
       </div>
 
       {/* Charts & Tables */}

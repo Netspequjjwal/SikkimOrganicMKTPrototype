@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Search, ArrowRight, FileSignature, CheckCircle, Package, Truck, ArrowLeft, ArrowUpRight, DollarSign, CreditCard, ExternalLink, Calendar, CheckCircle2, Clock, X, MessageSquare, AlertCircle, Pin, ChevronRight, ShoppingCart, FileText, FileCheck } from 'lucide-react';
+import { 
+  Building2, Users, Leaf, ArrowRight, ShieldCheck, Phone, CheckCircle, Clock,
+  Search, FileText, ShoppingBag, TrendingUp, AlertCircle, Eye, Handshake, Filter, ChevronDown, Plus, FileCheck, CheckCircle2, AlertTriangle, MapPin, ArrowLeft, ArrowUpRight, DollarSign, CreditCard, ExternalLink, Calendar, X, MessageSquare, Pin, ChevronRight, ShoppingCart, Package, FileSignature
+} from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useContract } from '../../context/ContractContext';
 import { useNegotiation } from '../../context/NegotiationContext';
 import { useOrder } from '../../context/OrderContext';
 import { useActionCenter } from '../../context/ActionCenterContext';
+import { useBuyerRegistration } from '../../context/BuyerRegistrationContext';
+import { checkCertificateStatus } from '../../utils/CertificateMonitoringEngine';
 import bannerImg from '../../assets/banner.png';
 
 const data = [
@@ -23,6 +28,12 @@ const BuyerDashboard: React.FC = () => {
   const { enquiries } = useNegotiation();
   const { orders } = useOrder();
   const { recentActions } = useActionCenter();
+  const { status: registrationStatus, registrationData } = useBuyerRegistration();
+  
+  const isApproved = registrationStatus === 'APPROVED';
+  
+  // Calculate expiry warnings if approved
+  const certStatus = isApproved && registrationData ? checkCertificateStatus(registrationData.expiryDate) : null;
   
   // Timeline Tracker state
   const [trackerSearch, setTrackerSearch] = useState('');
@@ -59,6 +70,7 @@ const BuyerDashboard: React.FC = () => {
 
   const handleTrackerSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isApproved) return;
     if (!trackerSearch.trim()) {
       setTrackedItem(null);
       return;
@@ -146,6 +158,135 @@ const BuyerDashboard: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
+      
+      {/* Registration Banner / Pending State Tracker */}
+      {!isApproved && (
+        <div className="space-y-6">
+          {/* Action / Banner Card */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
+            <div className="flex items-center relative z-10">
+              <div className={`p-4 rounded-full mr-6 shadow-sm ${registrationStatus === 'UNREGISTERED' ? 'bg-orange-100 text-orange-600' : 'bg-blue-100 text-blue-600'}`}>
+                {registrationStatus === 'UNREGISTERED' ? <FileSignature className="w-8 h-8" /> : <Clock className="w-8 h-8" />}
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">
+                  {registrationStatus === 'UNREGISTERED' ? 'Buyer Registration Pending' : 'Registration Under Review'}
+                </h2>
+                <p className="text-sm text-gray-600 mt-1">
+                  {registrationStatus === 'UNREGISTERED' 
+                    ? 'Complete your Organic Buyer Verification to access the Marketplace and begin procurement.' 
+                    : 'Your registration is currently being reviewed by the Agriculture Department. You will be notified once approved.'}
+                </p>
+              </div>
+            </div>
+            {registrationStatus === 'UNREGISTERED' && (
+              <button 
+                onClick={() => navigate('/dashboard/buyer-registration')}
+                className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-bold transition-colors whitespace-nowrap shadow-md"
+              >
+                Register Now
+              </button>
+            )}
+          </div>
+          
+          {/* Detailed Tracker for PENDING_APPROVAL */}
+          {registrationStatus === 'PENDING_APPROVAL' && registrationData && (
+            <div className="p-6 bg-orange-50/30">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="bg-white p-4 rounded-lg border border-orange-100 shadow-sm">
+                  <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">Reference Number</p>
+                  <p className="text-lg font-mono font-bold text-gray-900">{registrationData.referenceId || 'BUY-2026-PENDING'}</p>
+                </div>
+                <div className="bg-white p-4 rounded-lg border border-orange-100 shadow-sm">
+                  <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">Submitted On</p>
+                  <p className="text-lg font-medium text-gray-900">
+                    {registrationData.submissionDate ? new Date(registrationData.submissionDate).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Recently'}
+                  </p>
+                </div>
+                <div className="bg-white p-4 rounded-lg border border-orange-100 shadow-sm">
+                  <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">Current Status</p>
+                  <div className="flex items-center mt-1">
+                    <span className="flex h-2.5 w-2.5 rounded-full bg-orange-500 mr-2 animate-pulse"></span>
+                    <p className="text-sm font-bold text-orange-600">Pending Department Approval</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Approval Timeline */}
+              <div className="relative">
+                <h3 className="text-sm font-bold text-gray-900 mb-6 uppercase tracking-wider">Approval Progress</h3>
+                <div className="absolute left-4 top-10 bottom-0 w-0.5 bg-gray-200"></div>
+                <div className="space-y-6 relative">
+                  <div className="flex items-start">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 z-10 bg-green-100 text-green-600 border-2 border-white ring-4 ring-green-50">
+                      <CheckCircle className="w-4 h-4" />
+                    </div>
+                    <div className="ml-4 mt-1.5">
+                      <h4 className="text-sm font-bold text-gray-900">Application Submitted</h4>
+                      <p className="text-xs text-gray-500 mt-1">All required documents and forms uploaded successfully.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 z-10 bg-orange-100 text-orange-600 border-2 border-white ring-4 ring-orange-50">
+                      <Clock className="w-4 h-4 animate-spin-slow" />
+                    </div>
+                    <div className="ml-4 mt-1.5">
+                      <h4 className="text-sm font-bold text-orange-600">Initial Verification</h4>
+                      <p className="text-xs text-gray-500 mt-1">Department is verifying GST, PAN, and FSSAI credentials.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 z-10 bg-gray-100 text-gray-400 border-2 border-white">
+                      <FileCheck className="w-4 h-4" />
+                    </div>
+                    <div className="ml-4 mt-1.5">
+                      <h4 className="text-sm font-bold text-gray-500">Organic Compliance Check</h4>
+                      <p className="text-xs text-gray-400 mt-1">Verifying NPOP / PGS-India scope certificates.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 z-10 bg-gray-100 text-gray-400 border-2 border-white">
+                      <CheckCircle2 className="w-4 h-4" />
+                    </div>
+                    <div className="ml-4 mt-1.5">
+                      <h4 className="text-sm font-bold text-gray-500">Final Approval</h4>
+                      <p className="text-xs text-gray-400 mt-1">Buyer ID generated and marketplace access granted.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Certificate Expiry Warning Banner */}
+      {isApproved && certStatus && certStatus.status !== 'valid' && (
+        <div className={`rounded-xl p-4 border flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm animate-fade-in ${certStatus.color}`}>
+          <div className="flex items-center">
+            <div className={`p-2 rounded-full mr-3 bg-white/50 ${certStatus.iconColor}`}>
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-bold">{certStatus.message}</h3>
+              <p className="text-sm opacity-90 mt-0.5">
+                {certStatus.status === 'expired' 
+                  ? 'Your marketplace access may be restricted. Please renew your organic certificate immediately.'
+                  : 'Please prepare your updated certificate for renewal to avoid interruption in marketplace services.'}
+              </p>
+            </div>
+          </div>
+          <button 
+            onClick={() => navigate('/dashboard/certificate-renewal')}
+            className={`px-5 py-2.5 rounded-lg font-bold shadow-sm transition-colors whitespace-nowrap border
+              ${certStatus.status === 'expired' ? 'bg-red-600 hover:bg-red-700 text-white border-transparent' : 'bg-orange-600 hover:bg-orange-700 text-white border-transparent'}
+            `}
+          >
+            Renew Certificate
+          </button>
+        </div>
+      )}
+
       {/* Top Header & CTAs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-6 md:p-8 rounded-xl shadow-lg border border-gray-800 relative overflow-hidden group">
         {/* Background Image & Gradient Overlay */}
@@ -159,12 +300,22 @@ const BuyerDashboard: React.FC = () => {
           <p className="text-sm md:text-base text-gray-300 mt-1.5 font-medium max-w-md">Manage your procurement, track transactions, and instantly explore verified organic suppliers.</p>
         </div>
         <div className="flex flex-wrap items-center gap-4 relative z-10">
-          <button onClick={() => navigate('/dashboard/marketplace')} className="bg-white hover:bg-gray-50 text-primary px-6 py-3 rounded-xl font-bold transition-all flex items-center shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)] hover:-translate-y-0.5 animate-pulse-slow">
+          <button 
+            onClick={() => isApproved && navigate('/dashboard/marketplace')} 
+            className={`bg-white text-primary px-6 py-3 rounded-xl font-bold flex items-center ${isApproved ? 'hover:bg-gray-50 transition-all shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)] hover:-translate-y-0.5 animate-pulse-slow' : 'opacity-60 cursor-not-allowed'}`}
+            title={!isApproved ? "Registration approval is pending" : ""}
+          >
             <ShoppingCart className="w-5 h-5 mr-2" /> 
             Enter Marketplace
+            {!isApproved && <AlertCircle className="w-4 h-4 ml-2 text-red-500" />}
           </button>
-          <button onClick={() => navigate('/dashboard/my-enquiries')} className="bg-gray-800/50 hover:bg-gray-800 border border-gray-600 text-white px-5 py-3 rounded-xl font-medium transition-colors shadow-sm backdrop-blur-sm">
+          <button 
+            onClick={() => isApproved && navigate('/dashboard/my-enquiries')} 
+            className={`bg-gray-800/50 border border-gray-600 text-white px-5 py-3 rounded-xl font-medium shadow-sm backdrop-blur-sm ${isApproved ? 'hover:bg-gray-800 transition-colors' : 'opacity-60 cursor-not-allowed'}`}
+            title={!isApproved ? "Registration approval is pending" : ""}
+          >
             View Active Enquiries
+            {!isApproved && <AlertCircle className="w-4 h-4 ml-2 inline text-red-400" />}
           </button>
         </div>
       </div>
@@ -190,7 +341,8 @@ const BuyerDashboard: React.FC = () => {
                 }}
                 onFocus={() => setShowSuggestions(true)}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent uppercase"
+                className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent uppercase ${isApproved ? 'border-gray-300' : 'border-gray-200 bg-gray-50 cursor-not-allowed'}`}
+                disabled={!isApproved}
               />
               <Search className="w-5 h-5 text-gray-400 absolute left-3 top-3.5" />
               
@@ -226,7 +378,8 @@ const BuyerDashboard: React.FC = () => {
                 </ul>
               )}
             </div>
-            <button type="submit" className="bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-lg font-bold transition-colors">
+            <button type="submit" disabled={!isApproved} className={`px-6 py-3 rounded-lg font-bold transition-colors ${isApproved ? 'bg-primary hover:bg-primary-dark text-white' : 'bg-gray-300 text-gray-500 cursor-not-allowed flex items-center'}`}>
+              {!isApproved && <AlertCircle className="w-4 h-4 mr-2" />}
               Track Status
             </button>
           </form>
@@ -260,7 +413,7 @@ const BuyerDashboard: React.FC = () => {
             ) : (
               <div className="space-y-4">
                 {recentActions.map((item, idx) => (
-                  <div key={item.id} className="flex items-center justify-between p-4 rounded-xl border border-gray-200 hover:border-primary/30 hover:shadow-md transition-all group bg-white cursor-pointer" onClick={() => navigate(item.actionUrl)}>
+                  <div key={item.id} className={`flex items-center justify-between p-4 rounded-xl border border-gray-200 bg-white transition-all group ${isApproved ? 'hover:border-primary/30 hover:shadow-md cursor-pointer' : 'opacity-60 cursor-not-allowed'}`} onClick={() => isApproved && navigate(item.actionUrl)}>
                     <div className="flex items-center flex-1">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-4 
                         ${item.iconType === 'enquiry' ? 'bg-blue-100 text-blue-600' : 
@@ -312,7 +465,7 @@ const BuyerDashboard: React.FC = () => {
               ) : (
                 <div className="space-y-3">
                   {allActionableItems.map((item, idx) => (
-                    <div key={`${item.id}-${idx}`} onClick={() => navigate(item.actionUrl)} className="flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:bg-orange-50 cursor-pointer group">
+                    <div key={`${item.id}-${idx}`} onClick={() => isApproved && navigate(item.actionUrl)} className={`flex items-center justify-between p-3 rounded-lg border border-gray-200 group ${isApproved ? 'hover:bg-orange-50 cursor-pointer' : 'opacity-60 cursor-not-allowed'}`}>
                       <div className="flex items-center flex-1">
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 
                           ${item.type === 'signature' ? 'bg-blue-100 text-blue-600' : 

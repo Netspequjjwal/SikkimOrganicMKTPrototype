@@ -5,6 +5,7 @@ import { CheckCircle2, Download, Printer, ArrowLeft } from 'lucide-react';
 const RegistrationSuccess: React.FC = () => {
   const location = useLocation();
   const trackingId = location.state?.id || 'SP-2026-000000';
+  const isBuyer = location.state?.fromBuyerRegistration;
   const timestamp = new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
 
   return (
@@ -16,7 +17,9 @@ const RegistrationSuccess: React.FC = () => {
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Registration Submitted!</h2>
           <p className="text-sm text-gray-600">
-            Your Service Provider application has been successfully submitted to the Agriculture Department.
+            {isBuyer 
+              ? 'Your Buyer application has been successfully submitted to the Agriculture Department.' 
+              : 'Your Service Provider application has been successfully submitted to the Agriculture Department.'}
           </p>
         </div>
         
