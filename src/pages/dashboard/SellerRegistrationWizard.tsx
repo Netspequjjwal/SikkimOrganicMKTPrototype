@@ -19,10 +19,10 @@ const SellerRegistrationWizard: React.FC = () => {
 
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<any>({
-    sellerType: 'ICS Service Provider',
+    sellerType: 'ICS',
     legalName: 'Sikkim Organic Farmers Cooperative Society',
     tradeName: 'Sikkim Organics',
-    orgType: 'FPO/Cooperative',
+    orgType: 'Registered Legal Entity / Farmer Collective',
     establishmentYear: '2018',
     authorizedRep: 'Tenzing Bhutia',
     designation: 'Managing Director',
@@ -103,7 +103,7 @@ const SellerRegistrationWizard: React.FC = () => {
     }
     if (currentStep === 2) {
       if (formData.businessActivities.length === 0) newErrors.businessActivities = 'Select at least one';
-      if (formData.sellerType === 'ICS Service Provider' && !formData.scopeCertNumber) {
+      if (formData.sellerType === 'ICS' && !formData.scopeCertNumber) {
         newErrors.scopeCertNumber = 'Scope Certificate is required for ICS';
       }
     }
@@ -184,7 +184,7 @@ const SellerRegistrationWizard: React.FC = () => {
       <h3 className="text-xl font-bold text-gray-900 mb-6">Select Seller Organization Type</h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {[
-          { id: 'ICS Service Provider', title: 'ICS Service Provider', icon: Building2, desc: 'Organizations managing Internal Control Systems for organic farmers.' },
+          { id: 'ICS', title: 'ICS', icon: Building2, desc: 'Organizations managing Internal Control Systems for organic farmers.' },
           { id: 'Individual Farmer', title: 'Individual Farmer', icon: Users, desc: 'Individual farmers using the Scope/TC of their Grower Group.' },
           { id: 'IFFCO', title: 'IFFCO', icon: Truck, desc: 'Indian Farmers Fertiliser Cooperative Limited (Organic Division).' }
         ].map(type => (
@@ -220,9 +220,9 @@ const SellerRegistrationWizard: React.FC = () => {
           <label className="block text-sm font-medium text-gray-700">Organization Type</label>
           <select name="orgType" value={formData.orgType} onChange={handleInputChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm p-2.5 border">
             <option value="">Select Type</option>
-            <option value="Private Limited">Private Limited</option>
-            <option value="FPO/Cooperative">FPO/Cooperative</option>
-            <option value="Proprietorship">Proprietorship</option>
+            <option value="Multi-State Cooperative Society">Multi-State Cooperative Society</option>
+            <option value="Registered Legal Entity / Farmer Collective">Registered Legal Entity / Farmer Collective</option>
+            <option value="Internal Management System / Control Unit">Internal Management System / Control Unit</option>
           </select>
         </div>
         <div>
@@ -346,14 +346,14 @@ const SellerRegistrationWizard: React.FC = () => {
   const renderStep5 = () => {
     // Dynamic docs based on seller type and export
     const requiredDocs = [
-      { key: 'logo', label: 'Organization/Farmer Logo' },
-      { key: 'scopeCert', label: formData.sellerType === 'Individual Farmer' ? 'Scope Certificate (of Grower Group)' : 'Scope Certificate (NPOP/PGS)' }
+      { key: 'logo', label: 'Organization/Farmer Logo', formats: 'PNG, JPG, JPEG', size: 'Max 2MB' },
+      { key: 'scopeCert', label: formData.sellerType === 'Individual Farmer' ? 'Scope Certificate (of Grower Group)' : 'Scope Certificate (NPOP/PGS)', formats: 'PDF, JPG, PNG', size: 'Max 5MB' }
     ];
     
-    if (formData.sellerType !== 'Individual Farmer') requiredDocs.push({ key: 'fssai', label: 'FSSAI License' });
+    if (formData.sellerType !== 'Individual Farmer') requiredDocs.push({ key: 'fssai', label: 'FSSAI License', formats: 'PDF, JPG, PNG', size: 'Max 5MB' });
     if (formData.isExporting) {
-      requiredDocs.push({ key: 'iecDoc', label: 'IEC Certificate' });
-      requiredDocs.push({ key: 'apedaDoc', label: 'APEDA RCMC' });
+      requiredDocs.push({ key: 'iecDoc', label: 'IEC Certificate', formats: 'PDF, JPG, PNG', size: 'Max 5MB' });
+      requiredDocs.push({ key: 'apedaDoc', label: 'APEDA RCMC', formats: 'PDF, JPG, PNG', size: 'Max 5MB' });
     }
 
     return (
@@ -361,25 +361,43 @@ const SellerRegistrationWizard: React.FC = () => {
         <h3 className="text-xl font-bold text-gray-900 border-b pb-2">Document Upload</h3>
         <p className="text-sm text-gray-500">Upload the mandatory documents for your {formData.sellerType} application.</p>
         
+        {/* Specifications Banner */}
+        <div className="p-3.5 bg-blue-50/80 border border-blue-200 rounded-xl text-xs text-blue-900 flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <AlertCircle className="w-4 h-4 text-blue-600 shrink-0" />
+            <span className="font-medium">File Specifications: Upload official certificates in <strong>PDF, PNG, JPG, or JPEG</strong> format. Maximum file size per document is <strong>5 MB</strong> (Logo up to 2 MB).</span>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {requiredDocs.map(doc => (
-            <div key={doc.key} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-              <label className="block text-sm font-bold text-gray-700 mb-2">{doc.label} *</label>
+            <div key={doc.key} className="border border-gray-200 rounded-xl p-4 bg-gray-50/80 flex flex-col justify-between">
+              <div>
+                <div className="flex justify-between items-start mb-2">
+                  <label className="block text-sm font-bold text-gray-800">{doc.label} *</label>
+                  <span className="text-[10px] font-semibold text-gray-600 bg-gray-200/80 px-2 py-0.5 rounded-full">{doc.size}</span>
+                </div>
+              </div>
+              
               {!files[doc.key] ? (
-                <div className="border-2 border-dashed border-gray-300 rounded-md p-4 text-center hover:bg-gray-100 transition-colors">
-                  <UploadCloud className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-                  <label className="cursor-pointer text-sm font-medium text-primary hover:text-primary-dark">
+                <div className="border-2 border-dashed border-gray-300 rounded-xl p-5 text-center hover:bg-gray-100/80 transition-all group">
+                  <UploadCloud className="mx-auto h-8 w-8 text-gray-400 group-hover:text-primary transition-colors mb-1.5" />
+                  <label className="cursor-pointer text-sm font-bold text-primary hover:text-primary-dark">
                     Browse File
-                    <input type="file" className="sr-only" onChange={(e) => handleFileChange(doc.key, e)} accept=".pdf,.png,.jpg" />
+                    <input type="file" className="sr-only" onChange={(e) => handleFileChange(doc.key, e)} accept=".pdf,.png,.jpg,.jpeg" />
                   </label>
+                  <p className="text-xs text-gray-500 mt-1">Supported formats: {doc.formats} ({doc.size})</p>
                 </div>
               ) : (
-                <div className="flex items-center justify-between bg-white p-3 rounded border border-gray-200">
+                <div className="flex items-center justify-between bg-white p-3 rounded-xl border border-gray-200 shadow-xs">
                   <div className="flex items-center overflow-hidden">
-                    <FileText className="w-5 h-5 text-green-500 mr-2 flex-shrink-0" />
-                    <span className="text-sm truncate text-gray-700">{files[doc.key]?.name}</span>
+                    <FileText className="w-5 h-5 text-emerald-600 mr-2 flex-shrink-0" />
+                    <div className="truncate">
+                      <p className="text-xs font-bold text-gray-900 truncate">{files[doc.key]?.name}</p>
+                      <span className="text-[10px] text-gray-400 font-mono">{(files[doc.key]?.size ? (files[doc.key]!.size / 1024 / 1024).toFixed(2) + ' MB' : 'Uploaded')}</span>
+                    </div>
                   </div>
-                  <button type="button" onClick={() => removeFile(doc.key)} className="text-red-500 hover:text-red-700 ml-2">
+                  <button type="button" onClick={() => removeFile(doc.key)} className="text-red-500 hover:text-red-700 p-1.5 rounded-lg hover:bg-red-50 transition-colors">
                     <X className="w-4 h-4" />
                   </button>
                 </div>

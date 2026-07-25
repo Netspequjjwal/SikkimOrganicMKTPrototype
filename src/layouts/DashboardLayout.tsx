@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { 
+import {
   LayoutDashboard, Users, FileText, Settings, LogOut, Bell, Menu, X, CheckCircle, BarChart3, Truck, Search, FilePlus, FileCheck, UploadCloud, ClipboardList, ShoppingCart, MessageSquare, FileSignature, Package, ShieldCheck, Shield, Key, UserCheck
 } from 'lucide-react';
 import logoImg from '../assets/logo.png';
@@ -20,8 +20,8 @@ const DashboardLayout: React.FC = () => {
 
   const getNavItems = () => {
     const base = [{ icon: LayoutDashboard, label: 'Overview', path: '/dashboard' }];
-    
-    switch(user?.role) {
+
+    switch (user?.role) {
       case 'AGRI_DEPT':
         return [...base, { icon: FileCheck, label: 'ICS Registrations', path: '/dashboard/seller-approvals' }, { icon: UserCheck, label: 'Seller Approvals', path: '/dashboard/seller-approvals' }, { icon: Users, label: 'FPO Registration', path: '/dashboard/agri/fpo-registration' }, { icon: Package, label: 'ICS Product Listing', path: '/dashboard/agri/ics-products' }, { icon: FileText, label: 'FPO Product Listing', path: '/dashboard/agri/fpo-products' }, { icon: BarChart3, label: 'Analytics & Reports', path: '/dashboard/agri/analytics' }];
       case 'ICS_PROVIDER':
@@ -43,23 +43,23 @@ const DashboardLayout: React.FC = () => {
       <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 sm:px-6 z-20 shadow-sm flex-shrink-0">
         <div className="flex items-center gap-4">
           {/* Mobile Menu Button */}
-          <button 
-            onClick={() => setSidebarOpen(!sidebarOpen)} 
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
             className="md:hidden text-gray-500 hover:text-gray-700"
           >
             {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
-          
+
           <Link to="/" className="flex items-center">
             <img src={logoImg} alt="Logo" className="h-10 w-auto" />
           </Link>
 
           <div className="hidden md:block ml-4">
             <h1 className="text-lg font-semibold text-gray-800">
-              {user?.role === 'AGRI_DEPT' && 'Agriculture Department Portal'}
-              {user?.role === 'ICS_PROVIDER' && 'ICS Provider Portal'}
-              {user?.role === 'FPO_FARMER' && 'FPO & Farmer Portal'}
-              {user?.role === 'BUYER' && 'Buyer Portal'}
+              {user?.role === 'AGRI_DEPT' && 'Agriculture Department Dashboard'}
+              {user?.role === 'ICS_PROVIDER' && 'Sellers Dashboard'}
+              {user?.role === 'FPO_FARMER' && 'FPO Dashboard'}
+              {user?.role === 'BUYER' && 'Buyer Dashboard'}
             </h1>
           </div>
         </div>
@@ -77,18 +77,18 @@ const DashboardLayout: React.FC = () => {
             />
           </div>
         </div>
-        
+
         <div className="flex items-center gap-4">
-           {/* Global Search Bar (Mobile Toggle Icon) */}
-           <button className="md:hidden text-gray-400 hover:text-gray-500">
-             <Search className="h-6 w-6" />
-           </button>
-           
+          {/* Global Search Bar (Mobile Toggle Icon) */}
+          <button className="md:hidden text-gray-400 hover:text-gray-500">
+            <Search className="h-6 w-6" />
+          </button>
+
           <button className="relative text-gray-400 hover:text-gray-500 transition-colors">
             <Bell className="h-6 w-6" />
             <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-400 ring-2 ring-white" />
           </button>
-          
+
           <div className="flex items-center gap-3 border-l border-gray-200 pl-4 relative group">
             <div className="text-right hidden sm:block">
               <p className="text-sm font-medium text-gray-700">{user?.name}</p>
@@ -97,7 +97,7 @@ const DashboardLayout: React.FC = () => {
             <div className="h-9 w-9 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm shadow-inner cursor-pointer">
               {user?.name?.charAt(0)}
             </div>
-            
+
             {/* Dropdown for Logout */}
             <div className="absolute right-0 top-full pt-2 w-48 hidden group-hover:block z-50">
               <div className="bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5">
@@ -126,8 +126,8 @@ const DashboardLayout: React.FC = () => {
                 to={item.path}
                 className={clsx(
                   'group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors whitespace-nowrap',
-                  isActive 
-                    ? 'bg-white/20 text-white shadow-sm' 
+                  isActive
+                    ? 'bg-white/20 text-white shadow-sm'
                     : 'text-white/80 hover:bg-white/10 hover:text-white'
                 )}
               >
@@ -143,11 +143,11 @@ const DashboardLayout: React.FC = () => {
       {sidebarOpen && (
         <div className="md:hidden fixed inset-0 z-40 flex">
           {/* Overlay */}
-          <div 
+          <div
             className="fixed inset-0 bg-gray-600 bg-opacity-75 transition-opacity"
             onClick={() => setSidebarOpen(false)}
           ></div>
-          
+
           <div className="relative flex-1 flex flex-col max-w-xs w-full bg-white transform transition-transform">
             <div className="absolute top-0 right-0 -mr-12 pt-2">
               <button
@@ -158,7 +158,7 @@ const DashboardLayout: React.FC = () => {
                 <X className="h-6 w-6 text-white" />
               </button>
             </div>
-            
+
             <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
               <div className="flex-shrink-0 flex items-center px-4">
                 <img src={logoImg} alt="Logo" className="h-8 w-auto" />
@@ -174,8 +174,8 @@ const DashboardLayout: React.FC = () => {
                       onClick={() => setSidebarOpen(false)}
                       className={clsx(
                         'group flex items-center px-2 py-2 text-base font-medium rounded-md',
-                        isActive 
-                          ? 'bg-green-50 text-primary' 
+                        isActive
+                          ? 'bg-green-50 text-primary'
                           : 'text-gray-700 hover:bg-gray-50 hover:text-primary'
                       )}
                     >

@@ -68,7 +68,7 @@ const SellerApprovals: React.FC = () => {
   };
 
   const getSellerIcon = (type: string) => {
-    if (type === 'ICS Service Provider') return <Building2 className="w-4 h-4 mr-1 text-blue-500" />;
+    if (type === 'ICS' || type === 'ICS Service Provider') return <Building2 className="w-4 h-4 mr-1 text-blue-500" />;
     if (type === 'Individual Farmer') return <Users className="w-4 h-4 mr-1 text-green-500" />;
     return <Truck className="w-4 h-4 mr-1 text-purple-500" />;
   };
@@ -212,7 +212,7 @@ const SellerApprovals: React.FC = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Seller Registration Approvals</h1>
-          <p className="text-sm text-gray-500 mt-1">Review unified applications from ICS Providers, Grower Groups, and IFFCO.</p>
+          <p className="text-sm text-gray-500 mt-1">Review unified applications from ICS, Individual Farmers, and IFFCO.</p>
         </div>
         <button className="bg-white border border-gray-300 shadow-sm text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-50 flex items-center">
           <Download className="w-4 h-4 mr-2" /> Export Report
@@ -255,7 +255,7 @@ const SellerApprovals: React.FC = () => {
             
             <select value={filterSellerType} onChange={e => setFilterSellerType(e.target.value as any)} className="block w-full py-2 px-3 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm">
               <option value="All">All Seller Types</option>
-              <option value="ICS Service Provider">ICS Service Provider</option>
+              <option value="ICS">ICS</option>
               <option value="Individual Farmer">Individual Farmer</option>
               <option value="IFFCO">IFFCO</option>
             </select>

@@ -15,7 +15,7 @@ const STEPS: Step[] = [
     number: '01',
     title: 'Sellers Onboarding',
     subtitle: 'ICS, Farmers, IFFCO & Grower Groups',
-    description: 'ICS Providers, Individual Farmers, IFFCO & Grower Groups register with NPOP/PGS organic certification.',
+    description: 'ICS, Individual Farmers, IFFCO & Grower Groups register with NPOP/PGS organic certification.',
     icon: UserCheck,
     badge: 'Seller Verification'
   },
