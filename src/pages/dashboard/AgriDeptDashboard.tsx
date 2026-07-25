@@ -53,7 +53,7 @@ const AgriDeptDashboard: React.FC = () => {
       {/* Action / Quick Links */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <button 
-          onClick={() => navigate('/dashboard/sp-approvals')}
+          onClick={() => navigate('/dashboard/seller-approvals')}
           className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between hover:border-primary hover:shadow-md transition-all group"
         >
           <div className="flex items-center">

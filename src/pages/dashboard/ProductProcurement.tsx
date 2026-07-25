@@ -13,6 +13,8 @@ import cardamomImg from '../../assets/cardamom.jpg';
 import gingerImg from '../../assets/ginger.jpg';
 import turmericImg from '../../assets/turmeric.jpg';
 import buckwheatImg from '../../assets/buckwheat.jpg';
+import orangesImg from '../../assets/oranges.png';
+import dalleKhursaniImg from '../../assets/dallekhursani.png';
 
 const ProductProcurement: React.FC = () => {
   const { cropId } = useParams();
@@ -116,6 +118,8 @@ const ProductProcurement: React.FC = () => {
       case 'ginger': return gingerImg;
       case 'turmeric': return turmericImg;
       case 'buckwheat': return buckwheatImg;
+      case 'oranges': return orangesImg;
+      case 'local dalle khursani (dried)': return dalleKhursaniImg;
       default: return cardamomImg;
     }
   };
@@ -314,14 +318,18 @@ const ProductProcurement: React.FC = () => {
                   <div className="p-4 bg-white border-t border-gray-100 flex justify-between items-center">
                     <button className="text-sm font-semibold text-gray-600 hover:text-primary transition-colors" onClick={(e) => { e.stopPropagation(); navigate(`/dashboard/supplier/${sp.id}`); }}>View Profile</button>
                     <button 
-                      className={`px-5 py-2 rounded-lg text-sm font-bold shadow-md transition-all flex items-center ${isApproved ? 'bg-primary hover:bg-primary-dark text-white hover:shadow-lg hover:-translate-y-0.5' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`} 
+                      className={`px-5 py-2 rounded-lg text-sm font-bold shadow-md transition-all flex items-center ${isApproved ? 'bg-primary hover:bg-primary-dark text-white hover:shadow-lg hover:-translate-y-0.5' : 'bg-amber-500 hover:bg-amber-600 text-white hover:shadow-lg hover:-translate-y-0.5'}`} 
                       onClick={(e) => { 
                         e.stopPropagation(); 
-                        if (isApproved) setEnquiryMode(sp.id); 
+                        if (isApproved) {
+                          setEnquiryMode(sp.id); 
+                        } else {
+                          navigate('/dashboard/buyer-registration');
+                        }
                       }}
-                      title={!isApproved ? "Buyer registration required" : ""}
+                      title={!isApproved ? "Register to send enquiries" : ""}
                     >
-                      Send Enquiry <ArrowRight className="w-4 h-4 ml-1.5" />
+                      {isApproved ? 'Send Enquiry' : 'Register to Enquire'} <ArrowRight className="w-4 h-4 ml-1.5" />
                     </button>
                   </div>
                 </div>
@@ -353,14 +361,18 @@ const ProductProcurement: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 flex items-center mt-2"><Star className="w-4 h-4 text-yellow-400 mr-1 fill-current" /> {sp.rating}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-right">
                         <button 
-                          className={`px-4 py-1.5 rounded-lg text-sm font-bold shadow-sm transition-all flex items-center justify-end ml-auto ${isApproved ? 'bg-primary hover:bg-primary-dark text-white hover:shadow-md hover:-translate-y-0.5' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`} 
+                          className={`px-4 py-1.5 rounded-lg text-sm font-bold shadow-sm transition-all flex items-center justify-end ml-auto ${isApproved ? 'bg-primary hover:bg-primary-dark text-white hover:shadow-md hover:-translate-y-0.5' : 'bg-amber-500 hover:bg-amber-600 text-white hover:shadow-lg hover:-translate-y-0.5'}`} 
                           onClick={(e) => { 
                             e.stopPropagation(); 
-                            if (isApproved) setEnquiryMode(sp.id); 
+                            if (isApproved) {
+                              setEnquiryMode(sp.id); 
+                            } else {
+                              navigate('/dashboard/buyer-registration');
+                            }
                           }}
-                          title={!isApproved ? "Buyer registration required" : ""}
+                          title={!isApproved ? "Register to send enquiries" : ""}
                         >
-                          Enquire <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+                          {isApproved ? 'Enquire' : 'Register'} <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
                         </button>
                       </td>
                     </tr>
@@ -393,11 +405,19 @@ const ProductProcurement: React.FC = () => {
           </div>
           <div className="flex space-x-3">
             <button 
-              className={`px-8 py-3 rounded-xl font-bold transition-all shadow-md flex items-center ${isApproved ? 'bg-primary hover:bg-primary-dark text-white hover:shadow-lg hover:-translate-y-0.5' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`} 
-              onClick={() => { if (isApproved) setEnquiryMode('selected'); }}
-              title={!isApproved ? "Buyer registration required" : ""}
+              className={`px-8 py-3 rounded-xl font-bold transition-all shadow-md flex items-center ${isApproved ? 'bg-primary hover:bg-primary-dark text-white hover:shadow-lg hover:-translate-y-0.5' : 'bg-amber-500 hover:bg-amber-600 text-white hover:shadow-lg hover:-translate-y-0.5'}`} 
+              onClick={() => { 
+                if (isApproved) {
+                  setEnquiryMode('selected'); 
+                } else {
+                  navigate('/dashboard/buyer-registration');
+                }
+              }}
+              title={!isApproved ? "Register to send enquiries" : ""}
             >
-              Broadcast Enquiry to {selectedSuppliers.size} Selected {selectedSuppliers.size === 1 ? 'Supplier' : 'Suppliers'} <ArrowRight className="w-5 h-5 ml-2" />
+              {isApproved 
+                ? `Broadcast Enquiry to ${selectedSuppliers.size} Selected ${selectedSuppliers.size === 1 ? 'Supplier' : 'Suppliers'}` 
+                : 'Register to Broadcast Enquiry'} <ArrowRight className="w-5 h-5 ml-2" />
             </button>
           </div>
         </div>

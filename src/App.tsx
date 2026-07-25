@@ -5,7 +5,7 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import { LanguageProvider } from './context/LanguageContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { ServiceProviderProvider } from './context/ServiceProviderContext';
+import { SellerRegistrationProvider } from './context/SellerRegistrationContext';
 import { YieldSurveyProvider } from './context/YieldSurveyContext';
 import { NegotiationProvider } from './context/NegotiationContext';
 import { ContractProvider } from './context/ContractContext';
@@ -24,9 +24,9 @@ import BuyerApprovals from './pages/dashboard/BuyerApprovals';
 import BuyerApplicationDetails from './pages/dashboard/BuyerApplicationDetails';
 import CertificateRenewalWizard from './pages/dashboard/CertificateRenewalWizard';
 import BuyerTrustProfile from './pages/dashboard/BuyerTrustProfile';
-import ServiceProviderRegistration from './pages/dashboard/ServiceProviderRegistration';
+import SellerRegistrationWizard from './pages/dashboard/SellerRegistrationWizard';
 import RegistrationSuccess from './pages/dashboard/RegistrationSuccess';
-import ServiceProviderApprovals from './pages/dashboard/ServiceProviderApprovals';
+import SellerApprovals from './pages/dashboard/SellerApprovals';
 import UploadSurveyWizard from './pages/dashboard/UploadSurveyWizard';
 import SurveySuccess from './pages/dashboard/SurveySuccess';
 import SurveyApprovals from './pages/dashboard/SurveyApprovals';
@@ -101,7 +101,7 @@ function App() {
     <LanguageProvider>
       <NotificationProvider>
         <AuthProvider>
-          <ServiceProviderProvider>
+          <SellerRegistrationProvider>
             <YieldSurveyProvider>
               <TCProviderWrapper>
                 <NegotiationProvider>
@@ -127,10 +127,10 @@ function App() {
                               
                               {/* Common Dashboards */}
                               <Route path="buyer-registration" element={<BuyerRegistrationWizard />} />
-                              <Route path="sp-registration" element={<ServiceProviderRegistration />} />
+                              <Route path="seller-registration" element={<SellerRegistrationWizard />} />
                               <Route path="registration-success" element={<RegistrationSuccess />} />
                               <Route path="certificate-renewal" element={<CertificateRenewalWizard />} />
-                              <Route path="sp-approvals" element={<ServiceProviderApprovals />} />
+                              <Route path="seller-approvals" element={<SellerApprovals />} />
                               <Route path="buyer-approvals" element={<BuyerApprovals />} />
                               <Route path="buyer-approvals/:id" element={<BuyerApplicationDetails />} />
                               <Route path="buyer-profile/:id" element={<BuyerTrustProfile />} />
@@ -190,7 +190,7 @@ function App() {
                 </NegotiationProvider>
               </TCProviderWrapper>
             </YieldSurveyProvider>
-          </ServiceProviderProvider>
+          </SellerRegistrationProvider>
         </AuthProvider>
       </NotificationProvider>
     </LanguageProvider>

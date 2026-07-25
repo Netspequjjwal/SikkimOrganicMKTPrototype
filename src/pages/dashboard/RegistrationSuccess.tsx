@@ -4,8 +4,9 @@ import { CheckCircle2, Download, Printer, ArrowLeft } from 'lucide-react';
 
 const RegistrationSuccess: React.FC = () => {
   const location = useLocation();
-  const trackingId = location.state?.id || 'SP-2026-000000';
+  const trackingId = location.state?.id || 'SEL-2026-000000';
   const isBuyer = location.state?.fromBuyerRegistration;
+  const isSeller = location.state?.type === 'seller';
   const timestamp = new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
 
   return (
@@ -19,7 +20,9 @@ const RegistrationSuccess: React.FC = () => {
           <p className="text-sm text-gray-600">
             {isBuyer 
               ? 'Your Buyer application has been successfully submitted to the Agriculture Department.' 
-              : 'Your Service Provider application has been successfully submitted to the Agriculture Department.'}
+              : isSeller 
+                ? 'Your Seller Registration application has been successfully submitted to the Agriculture Department.'
+                : 'Your Service Provider application has been successfully submitted to the Agriculture Department.'}
           </p>
         </div>
         

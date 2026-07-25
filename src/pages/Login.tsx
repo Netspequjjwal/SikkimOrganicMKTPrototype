@@ -7,8 +7,8 @@ import logoImg from '../assets/logo.png';
 
 const DEMO_USERS = [
   { label: 'Agriculture Department', email: 'agridept@sikkim.gov.in', pass: 'Agri@123', role: 'AGRI_DEPT', name: 'Directorate of Agriculture' },
-  { label: 'ICS Service Provider', email: 'ics.admin@sikkimorganic.in', pass: 'ICS@123', role: 'ICS_PROVIDER', name: 'Sikkim ICS Admin' },
-  { label: 'FPO / Farmer', email: 'farmer001@sikkimorganic.in', pass: 'Farmer@123', role: 'FPO_FARMER', name: 'Karma Bhutia (FPO)' },
+  { label: 'Seller', email: 'seller.admin@sikkimorganic.in', pass: 'Seller@123', role: 'ICS_PROVIDER', name: 'Sikkim Seller Admin' },
+  { label: 'FPO', email: 'fpo001@sikkimorganic.in', pass: 'FPO@123', role: 'FPO_FARMER', name: 'Karma Bhutia (FPO)' },
   { label: 'Buyer', email: 'buyer@organicmart.com', pass: 'Buyer@123', role: 'BUYER', name: 'Naturals India Procurement' }
 ];
 
@@ -21,7 +21,9 @@ const Login: React.FC = () => {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    const foundUser = DEMO_USERS.find(u => u.email === email && u.pass === password);
+    const foundUser = DEMO_USERS.find(u => u.email.toLowerCase() === email.toLowerCase() && u.pass === password) ||
+      (email.toLowerCase() === 'ics.admin@sikkimorganic.in' ? DEMO_USERS[1] : null) ||
+      (email.toLowerCase() === 'farmer001@sikkimorganic.in' ? DEMO_USERS[2] : null);
     if (foundUser) {
       login({
         email: foundUser.email,
