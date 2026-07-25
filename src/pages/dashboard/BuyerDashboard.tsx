@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Building2, Users, Leaf, ArrowRight, ShieldCheck, Phone, CheckCircle, Clock,
-  Search, FileText, ShoppingBag, TrendingUp, AlertCircle, Eye, Handshake, Filter, ChevronDown, Plus, FileCheck, CheckCircle2, AlertTriangle, MapPin, ArrowLeft, ArrowUpRight, DollarSign, CreditCard, ExternalLink, Calendar, X, MessageSquare, Pin, ChevronRight, ShoppingCart, Package, FileSignature
+  Search, FileText, ShoppingBag, TrendingUp, AlertCircle, Eye, Handshake, Filter, ChevronDown, Plus, FileCheck, CheckCircle2, AlertTriangle, MapPin, ArrowLeft, ArrowUpRight, DollarSign, CreditCard, ExternalLink, Calendar, X, MessageSquare, Pin, ChevronRight, ShoppingCart, Package, FileSignature, Truck
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useContract } from '../../context/ContractContext';
@@ -301,13 +301,11 @@ const BuyerDashboard: React.FC = () => {
         </div>
         <div className="flex flex-wrap items-center gap-4 relative z-10">
           <button 
-            onClick={() => isApproved && navigate('/dashboard/marketplace')} 
-            className={`bg-white text-primary px-6 py-3 rounded-xl font-bold flex items-center ${isApproved ? 'hover:bg-gray-50 transition-all shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)] hover:-translate-y-0.5 animate-pulse-slow' : 'opacity-60 cursor-not-allowed'}`}
-            title={!isApproved ? "Registration approval is pending" : ""}
+            onClick={() => navigate('/dashboard/marketplace')} 
+            className={`bg-white text-primary px-6 py-3 rounded-xl font-bold flex items-center hover:bg-gray-50 transition-all shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)] hover:-translate-y-0.5 animate-pulse-slow`}
           >
             <ShoppingCart className="w-5 h-5 mr-2" /> 
             Enter Marketplace
-            {!isApproved && <AlertCircle className="w-4 h-4 ml-2 text-red-500" />}
           </button>
           <button 
             onClick={() => isApproved && navigate('/dashboard/my-enquiries')} 

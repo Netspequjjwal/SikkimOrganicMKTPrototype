@@ -5,7 +5,7 @@ import { useBuyerRegistration } from '../../context/BuyerRegistrationContext';
 
 const CertificateRenewalWizard: React.FC = () => {
   const navigate = useNavigate();
-  const { registrationData, setRegistrationData } = useBuyerRegistration();
+  const { registrationData, saveDraft } = useBuyerRegistration();
   
   const [formData, setFormData] = useState({
     scopeCertificateNumber: registrationData?.scopeCertificateNumber || '',
@@ -30,8 +30,7 @@ const CertificateRenewalWizard: React.FC = () => {
     // Simulate API call
     setTimeout(() => {
       if (registrationData) {
-        setRegistrationData({
-          ...registrationData,
+        saveDraft({
           scopeCertificateNumber: formData.scopeCertificateNumber,
           issueDate: formData.issueDate,
           expiryDate: formData.expiryDate,

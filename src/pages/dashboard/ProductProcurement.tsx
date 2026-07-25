@@ -5,6 +5,7 @@ import { useYieldSurvey } from '../../context/YieldSurveyContext';
 import { useNegotiation } from '../../context/NegotiationContext';
 import { useActionCenter } from '../../context/ActionCenterContext';
 import { useNotification } from '../../context/NotificationContext';
+import { useBuyerRegistration } from '../../context/BuyerRegistrationContext';
 import type { BuyerEnquiry } from '../../context/NegotiationContext';
 import { Search, Filter, ShieldCheck, Star, MapPin, Truck, ArrowLeft, ArrowRight, LayoutGrid, List, CheckCircle2, Clock, Info } from 'lucide-react';
 import clsx from 'clsx';
@@ -21,6 +22,8 @@ const ProductProcurement: React.FC = () => {
   const { addEnquiry } = useNegotiation();
   const { logAction } = useActionCenter();
   const { triggerEmail } = useNotification();
+  const { status: registrationStatus } = useBuyerRegistration();
+  const isApproved = registrationStatus === 'APPROVED';
 
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [selectedSuppliers, setSelectedSuppliers] = useState<Set<string>>(new Set());
@@ -310,8 +313,14 @@ const ProductProcurement: React.FC = () => {
 
                   <div className="p-4 bg-white border-t border-gray-100 flex justify-between items-center">
                     <button className="text-sm font-semibold text-gray-600 hover:text-primary transition-colors" onClick={(e) => { e.stopPropagation(); navigate(`/dashboard/supplier/${sp.id}`); }}>View Profile</button>
-                    <button className="bg-primary hover:bg-primary-dark text-white px-5 py-2 rounded-lg text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center hover:-translate-y-0.5" 
-                      onClick={(e) => { e.stopPropagation(); setEnquiryMode(sp.id); }}>
+                    <button 
+                      className={`px-5 py-2 rounded-lg text-sm font-bold shadow-md transition-all flex items-center ${isApproved ? 'bg-primary hover:bg-primary-dark text-white hover:shadow-lg hover:-translate-y-0.5' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`} 
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        if (isApproved) setEnquiryMode(sp.id); 
+                      }}
+                      title={!isApproved ? "Buyer registration required" : ""}
+                    >
                       Send Enquiry <ArrowRight className="w-4 h-4 ml-1.5" />
                     </button>
                   </div>
@@ -343,8 +352,14 @@ const ProductProcurement: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(sp)}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 flex items-center mt-2"><Star className="w-4 h-4 text-yellow-400 mr-1 fill-current" /> {sp.rating}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-right">
-                        <button className="bg-primary hover:bg-primary-dark text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 flex items-center justify-end ml-auto" 
-                          onClick={(e) => { e.stopPropagation(); setEnquiryMode(sp.id); }}>
+                        <button 
+                          className={`px-4 py-1.5 rounded-lg text-sm font-bold shadow-sm transition-all flex items-center justify-end ml-auto ${isApproved ? 'bg-primary hover:bg-primary-dark text-white hover:shadow-md hover:-translate-y-0.5' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`} 
+                          onClick={(e) => { 
+                            e.stopPropagation(); 
+                            if (isApproved) setEnquiryMode(sp.id); 
+                          }}
+                          title={!isApproved ? "Buyer registration required" : ""}
+                        >
                           Enquire <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
                         </button>
                       </td>
@@ -377,7 +392,11 @@ const ProductProcurement: React.FC = () => {
             </div>
           </div>
           <div className="flex space-x-3">
-            <button className="bg-primary hover:bg-primary-dark text-white px-8 py-3 rounded-xl font-bold transition-all shadow-md hover:shadow-lg flex items-center hover:-translate-y-0.5" onClick={() => setEnquiryMode('selected')}>
+            <button 
+              className={`px-8 py-3 rounded-xl font-bold transition-all shadow-md flex items-center ${isApproved ? 'bg-primary hover:bg-primary-dark text-white hover:shadow-lg hover:-translate-y-0.5' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`} 
+              onClick={() => { if (isApproved) setEnquiryMode('selected'); }}
+              title={!isApproved ? "Buyer registration required" : ""}
+            >
               Broadcast Enquiry to {selectedSuppliers.size} Selected {selectedSuppliers.size === 1 ? 'Supplier' : 'Suppliers'} <ArrowRight className="w-5 h-5 ml-2" />
             </button>
           </div>
