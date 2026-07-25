@@ -211,6 +211,44 @@ const initialData: YieldSurvey[] = [
     status: 'Approved',
     submittedAt: '2026-06-22T09:00:00Z',
     remarks: 'Approved.'
+  },
+  
+  // Oranges
+  {
+    id: 'YS-2026-RABI-000405',
+    serviceProviderName: 'Sikkim Organic Alive',
+    year: '2026',
+    season: 'Rabi',
+    phase: 'Phase 2 - Actual',
+    crop: 'Oranges',
+    growerGroups: ['Dzongu GG', 'Mangan GG'],
+    farmerCount: 120,
+    certFileName: 'TC_SOA_Oranges.pdf',
+    excelData: [],
+    totalArea: 25.0,
+    totalYield: 45.0, // MT
+    status: 'Approved',
+    submittedAt: '2026-08-05T09:00:00Z',
+    remarks: 'Approved.'
+  },
+
+  // Local Dalle Khursani (Dried)
+  {
+    id: 'YS-2026-KHARIF-000501',
+    serviceProviderName: 'SIMFED',
+    year: '2026',
+    season: 'Kharif',
+    phase: 'Phase 2 - Actual',
+    crop: 'Local Dalle Khursani (Dried)',
+    growerGroups: ['Namchi GG'],
+    farmerCount: 80,
+    certFileName: 'TC_SIMFED_Dalle.pdf',
+    excelData: [],
+    totalArea: 12.0,
+    totalYield: 8.5, // MT
+    status: 'Approved',
+    submittedAt: '2026-09-10T10:00:00Z',
+    remarks: 'Approved.'
   }
 ];
 

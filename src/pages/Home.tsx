@@ -1,5 +1,5 @@
 import Hero from '../components/home/Hero';
-import FeaturedProducts from '../components/home/FeaturedProducts';
+import FarmerStories from '../components/home/FarmerStories';
 import WhyChooseUs from '../components/home/WhyChooseUs';
 import VisionMission from '../components/home/VisionMission';
 import Timeline from '../components/home/Timeline';
@@ -12,7 +12,7 @@ const Home: React.FC = () => {
     <>
       <Hero />
       <Stats />
-      <FeaturedProducts />
+      <FarmerStories />
       <WhyChooseUs />
       <VisionMission />
       <Timeline />

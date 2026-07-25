@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ClipboardCheck, MapPin, AlertCircle, Calendar, CheckCircle2, Clock, XCircle, ArrowRight, FileText, Search, Pin, ChevronRight, MessageSquare, FileSignature, CreditCard, X, Package } from 'lucide-react';
-import { useServiceProvider } from '../../context/ServiceProviderContext';
+import { useSellerRegistration } from '../../context/SellerRegistrationContext';
 import { useContract } from '../../context/ContractContext';
 import { useNegotiation } from '../../context/NegotiationContext';
 import { useOrder } from '../../context/OrderContext';
@@ -9,7 +9,7 @@ import { useActionCenter } from '../../context/ActionCenterContext';
 
 const ICSDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { applications } = useServiceProvider();
+  const { applications } = useSellerRegistration();
   const { contracts } = useContract();
   const { enquiries } = useNegotiation();
   const { orders } = useOrder();
