@@ -37,6 +37,7 @@ export interface SellerRegistration {
   issueDate?: string;
   expiryDate?: string;
   productsCovered?: string;
+  scopeVerifiedCrops?: string[]; // Scope Certified Organic Produces authorized for listing
   cultivatedArea?: number;
   noOfFarmers?: number;
   noOfGrowerGroups?: number;
@@ -111,6 +112,7 @@ const initialData: SellerRegistration[] = [
     certificationSystem: 'NPOP',
     certificationBody: 'Sikkim State Certification Agency',
     scopeCertNumber: 'ORG/SC/2026/001',
+    scopeVerifiedCrops: ['Large Cardamom', 'Dzongu Ginger', 'Lakadong Turmeric', 'Buckwheat', 'Sikkim Mandarin', 'Dalle Khursani'],
     noOfFarmers: 450,
     cultivatedArea: 1200,
     icsAvailability: true,
@@ -138,6 +140,8 @@ const initialData: SellerRegistration[] = [
     pinCode: '737126',
     businessActivities: ['Production'],
     certificationSystem: 'PGS',
+    scopeCertNumber: 'ORG/SC/2026/088',
+    scopeVerifiedCrops: ['Dzongu Ginger', 'Lakadong Turmeric', 'Sikkim Mandarin', 'Dalle Khursani'],
     noOfFarmers: 120,
     cultivatedArea: 350,
     scopeCertFileName: 'Namchi_PGS_Cert.pdf',
@@ -160,6 +164,8 @@ const initialData: SellerRegistration[] = [
     district: 'Gangtok',
     pinCode: '737101',
     businessActivities: ['Processing', 'Export', 'Trading'],
+    scopeCertNumber: 'ORG/SC/2026/099',
+    scopeVerifiedCrops: ['Lakadong Turmeric', 'Buckwheat', 'Large Cardamom', 'Sikkim Mandarin'],
     isExporting: true,
     iec: '0500000000',
     apedaRcmc: 'APEDA/2026/001',

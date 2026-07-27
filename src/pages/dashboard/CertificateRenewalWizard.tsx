@@ -17,6 +17,24 @@ const CertificateRenewalWizard: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
+  const [cropsList, setCropsList] = useState<string[]>([
+    'Large Cardamom', 'Dzongu Ginger', 'Lakadong Turmeric', 'Buckwheat', 'Sikkim Mandarin', 'Dalle Khursani'
+  ]);
+  const [customCropInput, setCustomCropInput] = useState('');
+
+  const handleAddCrop = (cropName: string) => {
+    const trimmed = cropName.trim();
+    if (!trimmed) return;
+    if (!cropsList.includes(trimmed)) {
+      setCropsList(prev => [...prev, trimmed]);
+    }
+    setCustomCropInput('');
+  };
+
+  const handleRemoveCrop = (cropName: string) => {
+    setCropsList(prev => prev.filter(c => c !== cropName));
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFormData({ ...formData, document: e.target.files[0] });
@@ -123,6 +141,97 @@ const CertificateRenewalWizard: React.FC = () => {
                 min={formData.issueDate || new Date().toISOString().split('T')[0]}
                 className="mt-1 block w-full rounded-md shadow-sm sm:text-sm p-2.5 border border-gray-300 focus:ring-primary focus:border-primary"
               />
+            </div>
+          </div>
+
+          {/* Scope Certified Organic Produces Renewal Selector */}
+          <div className="space-y-4 p-5 bg-emerald-50/80 border border-emerald-300 rounded-2xl">
+            <div>
+              <label className="block text-sm font-extrabold text-slate-900 flex items-center">
+                <ShieldCheck className="w-4 h-4 text-emerald-600 mr-2" />
+                Update Scope Certified Organic Produces Authorized for Listing *
+              </label>
+              <p className="text-xs text-slate-600 mt-1">
+                Select items from the pre-filled dropdown list OR type custom produce names as authorized on your new Scope Certificate.
+              </p>
+            </div>
+
+            {/* Selected Crops Chips List */}
+            <div className="flex flex-wrap gap-2 min-h-[42px] p-3 bg-white rounded-xl border border-emerald-200">
+              {cropsList.length === 0 ? (
+                <span className="text-xs text-slate-400 italic">No produces selected yet. Use the dropdown or text box below to add crops.</span>
+              ) : (
+                cropsList.map((crop: string) => (
+                  <span key={crop} className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-700 text-white font-bold text-xs rounded-full shadow-xs">
+                    <span>✓ {crop}</span>
+                    <button 
+                      type="button" 
+                      onClick={() => handleRemoveCrop(crop)}
+                      className="w-4 h-4 rounded-full bg-emerald-800 hover:bg-emerald-900 flex items-center justify-center text-white text-[10px] font-extrabold"
+                      title="Remove crop"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))
+              )}
+            </div>
+
+            {/* Input Controls: Pre-filled Dropdown + Free Text Add */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+              {/* 1. Pre-filled Dropdown */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                  Select from Pre-filled Scope Produces
+                </label>
+                <select 
+                  onChange={e => {
+                    if (e.target.value) {
+                      handleAddCrop(e.target.value);
+                      e.target.value = '';
+                    }
+                  }}
+                  className="w-full p-2.5 bg-white border border-emerald-300 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                >
+                  <option value="">-- Choose Pre-filled Produce --</option>
+                  {[
+                    'Large Cardamom', 'Dzongu Ginger', 'Lakadong Turmeric', 'Buckwheat', 
+                    'Sikkim Mandarin', 'Dalle Khursani', 'Passion Fruit', 'Cymbidium Orchid', 
+                    'Black Cardamom', 'Organic Honey', 'Temi Tea', 'Organic Rajma'
+                  ].filter(c => !cropsList.includes(c)).map(c => (
+                    <option key={c} value={c}>+ {c}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* 2. Free Text Custom Input */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                  Or Type Custom Produce Name
+                </label>
+                <div className="flex gap-2">
+                  <input 
+                    type="text" 
+                    value={customCropInput}
+                    onChange={e => setCustomCropInput(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddCrop(customCropInput);
+                      }
+                    }}
+                    placeholder="e.g. Organic Kiwi / Red Rice"
+                    className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                  />
+                  <button 
+                    type="button"
+                    onClick={() => handleAddCrop(customCropInput)}
+                    className="px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs rounded-xl shadow-xs shrink-0"
+                  >
+                    + Add
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 

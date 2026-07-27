@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useContract } from '../../../context/ContractContext';
 import { useAuth } from '../../../context/AuthContext';
-import { Search, Filter, Download, ArrowUpRight, CheckCircle, Clock } from 'lucide-react';
+import { Search, Filter, Download, ArrowUpRight, CheckCircle, Clock, DollarSign, CreditCard } from 'lucide-react';
 import clsx from 'clsx';
+import toast from 'react-hot-toast';
 
 const TransactionLedger: React.FC = () => {
   const { contracts } = useContract();
@@ -49,142 +50,184 @@ const TransactionLedger: React.FC = () => {
   const totalPending = allTransactions.filter(t => t.status === 'Pending').reduce((sum, t) => sum + t.amount, 0);
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Financial Ledger</h1>
-          <p className="text-sm text-gray-500 mt-1">Track and audit all incoming and outgoing procurement payments.</p>
+    <div className="max-w-7xl mx-auto space-y-6 pb-20">
+      
+      {/* Header Banner Card */}
+      <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center space-x-3">
+          <div className="p-3 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-2xl shrink-0">
+            <DollarSign className="w-7 h-7" />
+          </div>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+              {user?.role === 'BUYER'
+                ? 'Buyer Payment Ledger & Payables Tracker'
+                : 'Seller Financial Ledger & Payment Reconciliation'}
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 mt-1">
+              {user?.role === 'BUYER'
+                ? 'View and manage all your outgoing procurement payments, escrow dues, and milestone payables.'
+                : 'Track, audit, and reconcile incoming procurement payments, escrow milestones, and bank payouts.'}
+            </p>
+          </div>
         </div>
-        <button className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center transition-colors shadow-sm">
-          <Download className="w-4 h-4 mr-2" /> Export Statement
+
+        <button 
+          onClick={() => toast.success('Ledger statement export initiated...')}
+          className="px-4 py-2.5 sm:px-5 sm:py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 shrink-0"
+        >
+          <Download className="w-4 h-4" />
+          {user?.role === 'BUYER' ? 'Export Payables Statement' : 'Export Ledger Statement'}
         </button>
       </div>
 
-      {/* Analytics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-xl p-6 text-white shadow-lg">
-          <div className="flex justify-between items-start mb-4">
+      {/* Analytics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bg-gradient-to-r from-emerald-800 via-teal-900 to-slate-900 rounded-2xl p-6 text-white shadow-md space-y-3">
+          <div className="flex justify-between items-start">
             <div>
-              <p className="text-green-100 text-sm font-semibold uppercase tracking-wider mb-1">
-                {user?.role === 'BUYER' ? 'Total Paid Amount' : 'Total Settled Value'}
+              <p className="text-emerald-200/80 text-xs font-extrabold uppercase tracking-wider mb-1">
+                {user?.role === 'BUYER' ? 'Total Paid Amount' : 'Total Settled & Disbursed Value'}
               </p>
-              <h2 className="text-4xl font-bold font-mono">₹{(totalPaid / 100000).toFixed(2)}L</h2>
+              <h2 className="text-3xl sm:text-4xl font-black font-mono">₹{(totalPaid / 100000).toFixed(2)} Lakhs</h2>
             </div>
-            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-              <CheckCircle className="w-6 h-6 text-white" />
+            <div className="p-3 bg-emerald-500/30 rounded-2xl border border-emerald-400/40 shrink-0">
+              <CheckCircle className="w-6 h-6 text-emerald-300" />
             </div>
           </div>
-          <p className="text-green-100 text-sm">Amount successfully processed via payment gateway.</p>
+          <p className="text-emerald-200/70 text-xs font-medium">Verified payments cleared and settled to seller bank accounts.</p>
         </div>
-        <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl p-6 text-white shadow-lg">
-          <div className="flex justify-between items-start mb-4">
+
+        <div className="bg-gradient-to-r from-amber-600 via-orange-600 to-amber-800 rounded-2xl p-6 text-white shadow-md space-y-3">
+          <div className="flex justify-between items-start">
             <div>
-              <p className="text-orange-100 text-sm font-semibold uppercase tracking-wider mb-1">
-                {user?.role === 'BUYER' ? 'Pending Payables' : 'Pending Receivables'}
+              <p className="text-amber-100/80 text-xs font-extrabold uppercase tracking-wider mb-1">
+                {user?.role === 'BUYER' ? 'Pending Payables' : 'Upcoming Pending Receivables'}
               </p>
-              <h2 className="text-4xl font-bold font-mono">₹{(totalPending / 100000).toFixed(2)}L</h2>
+              <h2 className="text-3xl sm:text-4xl font-black font-mono">₹{(totalPending / 100000).toFixed(2)} Lakhs</h2>
             </div>
-            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-              <Clock className="w-6 h-6 text-white" />
+            <div className="p-3 bg-amber-500/30 rounded-2xl border border-amber-300/40 shrink-0">
+              <Clock className="w-6 h-6 text-amber-200" />
             </div>
           </div>
-          <p className="text-orange-100 text-sm">
-            {user?.role === 'BUYER' ? 'Outstanding dues for upcoming milestones.' : 'Expected value from upcoming milestones.'}
+          <p className="text-amber-100/70 text-xs font-medium">
+            {user?.role === 'BUYER' ? 'Outstanding dues for upcoming contract milestones.' : 'Expected incoming payments from active escrow milestones.'}
           </p>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        {/* Filters */}
-        <div className="border-b border-gray-200 px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="flex-1 relative w-full">
-            <input 
-              type="text"
-              placeholder="Search by Ref, Buyer, Supplier, or Description..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary bg-gray-50"
-            />
-            <Search className="w-5 h-5 text-gray-400 absolute left-3 top-3" />
-          </div>
-          <div className="w-full md:w-64 relative">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary bg-gray-50 appearance-none font-medium"
-            >
-              <option value="All">All Transactions</option>
-              <option value="Paid">Settled (Paid)</option>
-              <option value="Pending">Upcoming (Pending)</option>
-            </select>
-            <Filter className="w-4 h-4 text-gray-400 absolute left-3 top-3.5" />
-          </div>
+      {/* Filters & Control Bar */}
+      <div className="bg-white rounded-2xl p-3 sm:p-4 border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4">
+        <div className="relative flex-1 w-full">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+          <input 
+            type="text" 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search Contract Ref, Buyer Name, Supplier, or Milestone..."
+            className="w-full pl-9 pr-4 py-2 text-xs font-semibold rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
         </div>
 
-        {/* Ledger Table */}
+        <div className="flex flex-wrap items-center gap-1.5 w-full md:w-auto">
+          {[
+            { id: 'All', label: 'ALL TRANSACTIONS' },
+            { id: 'Paid', label: 'SETTLED (PAID)' },
+            { id: 'Pending', label: 'UPCOMING (PENDING)' }
+          ].map(st => (
+            <button
+              key={st.id}
+              onClick={() => setStatusFilter(st.id)}
+              className={clsx(
+                "px-3 py-1.5 text-[11px] font-extrabold rounded-full transition-all border",
+                statusFilter === st.id 
+                  ? "bg-slate-900 text-white border-slate-900 shadow-xs" 
+                  : "bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200"
+              )}
+            >
+              {st.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Ledger Table Container */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+        <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+          <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-700 flex items-center">
+            <CreditCard className="w-4 h-4 text-emerald-600 mr-2" /> B2B Payment Audit & Milestone Ledger
+          </h3>
+          <span className="text-[11px] font-semibold text-slate-500">Showing {filteredTransactions.length} transactions</span>
+        </div>
+
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[800px]">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Date / Time</th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Contract Details</th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Parties Involved</th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Description</th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Amount</th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Status</th>
+          <table className="w-full text-left border-collapse text-xs min-w-[700px]">
+            <thead className="bg-slate-50">
+              <tr>
+                <th className="px-5 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Date & Time</th>
+                <th className="px-5 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Contract & Commodity</th>
+                <th className="px-5 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Transacting Entities</th>
+                <th className="px-5 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Milestone Description</th>
+                <th className="px-5 py-3 text-right text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Amount (₹)</th>
+                <th className="px-5 py-3 text-right text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-slate-100 bg-white">
               {filteredTransactions.map((tx, idx) => (
-                <tr key={`${tx.id}-${idx}`} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4">
+                <tr key={`${tx.id}-${idx}`} className="hover:bg-slate-50/80 transition-colors">
+                  <td className="px-5 py-3.5 whitespace-nowrap">
                     {tx.status === 'Paid' ? (
                       <>
-                        <p className="font-medium text-gray-900">{new Date(tx.paidAt!).toLocaleDateString()}</p>
-                        <p className="text-xs text-gray-500 mt-1">{new Date(tx.paidAt!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                        <p className="font-extrabold text-slate-900 text-xs">{new Date(tx.paidAt!).toLocaleDateString()}</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">{new Date(tx.paidAt!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                       </>
                     ) : (
                       <>
-                        <p className="font-medium text-gray-600">Due: {new Date(tx.dueDate).toLocaleDateString()}</p>
-                        <p className="text-xs text-gray-400 mt-1">Pending</p>
+                        <p className="font-bold text-slate-600 text-xs">Due: {new Date(tx.dueDate).toLocaleDateString()}</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">Upcoming</p>
                       </>
                     )}
                   </td>
-                  <td className="px-6 py-4">
-                    <p className="font-bold text-gray-900">{tx.contractRef}</p>
-                    <p className="text-xs text-gray-500 mt-1">{tx.product}</p>
+
+                  <td className="px-5 py-3.5 whitespace-nowrap">
+                    <p className="font-mono font-extrabold text-emerald-700 text-xs">{tx.contractRef}</p>
+                    <p className="text-[10px] text-slate-500 mt-0.5">{tx.product}</p>
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm">
-                      <p><span className="text-gray-500 text-xs w-10 inline-block">From:</span> <span className="font-medium">{tx.buyerName}</span></p>
-                      <p className="mt-1"><span className="text-gray-500 text-xs w-10 inline-block">To:</span> <span className="font-medium">{tx.supplierName}</span></p>
+
+                  <td className="px-5 py-3.5 whitespace-nowrap">
+                    <div className="text-xs">
+                      <p><span className="text-slate-400 text-[10px] uppercase font-bold inline-block w-10">From:</span> <strong className="text-slate-800">{tx.buyerName}</strong></p>
+                      <p className="mt-0.5"><span className="text-slate-400 text-[10px] uppercase font-bold inline-block w-10">To:</span> <strong className="text-slate-800">{tx.supplierName}</strong></p>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
-                    <p className="font-medium text-gray-900">{tx.description}</p>
+
+                  <td className="px-5 py-3.5 whitespace-nowrap">
+                    <p className="font-bold text-slate-800 text-xs">{tx.description}</p>
                   </td>
-                  <td className="px-6 py-4 text-right">
+
+                  <td className="px-5 py-3.5 whitespace-nowrap text-right">
                     <p className={clsx(
-                      "font-bold font-mono text-lg",
-                      tx.status === 'Paid' ? "text-green-600" : "text-gray-900"
+                      "font-black font-mono text-sm",
+                      tx.status === 'Paid' ? "text-emerald-700" : "text-slate-900"
                     )}>
                       ₹{tx.amount.toLocaleString()}
                     </p>
                   </td>
-                  <td className="px-6 py-4 text-right">
+
+                  <td className="px-5 py-3.5 whitespace-nowrap text-right">
                     {tx.status === 'Paid' ? (
-                      <span className="inline-flex items-center bg-green-100 text-green-800 text-xs px-2.5 py-1 rounded-md font-bold uppercase tracking-wider">
+                      <span className="inline-flex items-center bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] px-2.5 py-1 rounded-full font-extrabold">
                         <CheckCircle className="w-3 h-3 mr-1" /> Settled
                       </span>
                     ) : (
-                      <div className="flex items-center justify-end space-x-3">
-                        <span className="inline-flex items-center bg-orange-100 text-orange-800 text-xs px-2.5 py-1 rounded-md font-bold uppercase tracking-wider">
+                      <div className="flex items-center justify-end space-x-2">
+                        <span className="inline-flex items-center bg-amber-100 text-amber-800 border border-amber-300 text-[10px] px-2.5 py-1 rounded-full font-extrabold">
                           <Clock className="w-3 h-3 mr-1" /> Pending
                         </span>
                         {user?.role === 'BUYER' && (
                           <button 
                             onClick={() => navigate(`/dashboard/payments/gateway/${tx.contractId}`)}
-                            className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded text-xs font-bold transition-colors"
+                            className="bg-emerald-700 hover:bg-emerald-800 text-white px-3 py-1 rounded-xl text-xs font-extrabold transition-all shadow-xs"
                           >
                             Pay Now
                           </button>
@@ -196,8 +239,8 @@ const TransactionLedger: React.FC = () => {
               ))}
               {filteredTransactions.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
-                    No transactions found.
+                  <td colSpan={6} className="px-6 py-12 text-center text-slate-400 italic">
+                    No payment transactions found matching your criteria.
                   </td>
                 </tr>
               )}
@@ -205,6 +248,7 @@ const TransactionLedger: React.FC = () => {
           </table>
         </div>
       </div>
+
     </div>
   );
 };

@@ -2,121 +2,194 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTC } from '../../../context/TCContext';
 import { useAuth } from '../../../context/AuthContext';
-import { ShieldCheck, Search, Filter, FileText, ChevronRight, CheckCircle2, Clock, AlertTriangle } from 'lucide-react';
+import { ShieldCheck, Search, Filter, FileText, ChevronRight, CheckCircle2, Clock, AlertTriangle, ArrowRight } from 'lucide-react';
+import clsx from 'clsx';
 
 export default function TCProviderDashboard() {
   const { requests, activeCertificates } = useTC();
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // For demo purposes, we show all requests. In production, filter by providerId === user.id
   const myRequests = requests; 
   const [filter, setFilter] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredRequests = myRequests.filter(r => filter === 'All' || r.status === filter);
+  const pendingCount = myRequests.filter(r => r.status === 'Pending').length;
+  const underReviewCount = myRequests.filter(r => r.status === 'Under Review' || r.status === 'Proposal Ready').length;
+  const activeCount = activeCertificates.length;
+
+  const filteredRequests = myRequests.filter(r => {
+    const matchesSearch = r.id.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          r.fpoName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          r.crops.some(c => c.toLowerCase().includes(searchQuery.toLowerCase()));
+    if (!matchesSearch) return false;
+    if (filter !== 'All' && r.status !== filter) return false;
+    return true;
+  });
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-20">
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <ShieldCheck className="w-6 h-6 text-primary" /> TC Requests Dashboard
-            </h1>
-            <p className="text-gray-500">Manage incoming Transaction Certificate requests and active licenses.</p>
+      
+      {/* Header Banner Card */}
+      <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center space-x-3">
+          <div className="p-3 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-2xl shrink-0">
+            <ShieldCheck className="w-7 h-7" />
           </div>
-          <div className="flex gap-4">
-            <div className="bg-blue-50 px-4 py-2 rounded-lg border border-blue-100">
-              <div className="text-sm text-blue-600 font-medium">Pending Review</div>
-              <div className="text-2xl font-bold text-blue-900">{myRequests.filter(r => r.status === 'Pending').length}</div>
-            </div>
-            <div className="bg-green-50 px-4 py-2 rounded-lg border border-green-100">
-              <div className="text-sm text-green-600 font-medium">Active Licenses</div>
-              <div className="text-2xl font-bold text-green-900">{activeCertificates.length}</div>
-            </div>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+              Transaction Certificate (TC) Requests Portal
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 mt-1">
+              Process incoming Transaction Certificate requests, perform batch trace audits, and issue valid organic licenses.
+            </p>
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <input 
-              type="text" 
-              placeholder="Search by Request ID or FPO Name..." 
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary focus:border-primary transition-all shadow-sm"
-            />
-          </div>
-          <div className="flex gap-2">
-            <select 
-              className="px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary focus:border-primary bg-white shadow-sm"
-              value={filter}
-              onChange={e => setFilter(e.target.value)}
+        <span className="text-xs font-mono font-bold bg-emerald-100 text-emerald-800 px-3 py-1.5 rounded-full border border-emerald-200 self-start md:self-center shrink-0">
+          Certifying Body Desk
+        </span>
+      </div>
+
+      {/* KPI METRIC CARDS ROW */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <div className="p-4 bg-amber-50/80 rounded-2xl border border-amber-200 shadow-xs">
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-700 block flex items-center">
+            <Clock className="w-3.5 h-3.5 mr-1" /> Pending TC Review
+          </span>
+          <span className="text-xl sm:text-2xl font-black text-amber-900 mt-1 block">{pendingCount}</span>
+        </div>
+
+        <div className="p-4 bg-blue-50/80 rounded-2xl border border-blue-200 shadow-xs">
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-700 block flex items-center">
+            <FileText className="w-3.5 h-3.5 mr-1" /> Under Audit / Proposal
+          </span>
+          <span className="text-xl sm:text-2xl font-black text-blue-900 mt-1 block">{underReviewCount}</span>
+        </div>
+
+        <div className="p-4 bg-emerald-50/80 rounded-2xl border border-emerald-200 shadow-xs">
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 block flex items-center">
+            <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Active TC Licenses
+          </span>
+          <span className="text-xl sm:text-2xl font-black text-emerald-900 mt-1 block">{activeCount}</span>
+        </div>
+
+        <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs">
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block flex items-center">
+            <ShieldCheck className="w-3.5 h-3.5 mr-1 text-slate-500" /> Total Applications
+          </span>
+          <span className="text-xl sm:text-2xl font-black text-slate-900 mt-1 block">{myRequests.length}</span>
+        </div>
+      </div>
+
+      {/* FILTER & SEARCH CONTROL BAR */}
+      <div className="bg-white rounded-2xl p-3 sm:p-4 border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4">
+        <div className="relative flex-1 w-full">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+          <input 
+            type="text" 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search Request ID, Seller/FPO Name, Crop..."
+            className="w-full pl-9 pr-4 py-2 text-xs font-semibold rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+        </div>
+
+        <div className="flex flex-wrap items-center gap-1.5 w-full md:w-auto">
+          {['All', 'Pending', 'Under Review', 'Proposal Ready', 'Accepted'].map(st => (
+            <button
+              key={st}
+              onClick={() => setFilter(st)}
+              className={clsx(
+                "px-3 py-1.5 text-[11px] font-extrabold rounded-full transition-all border",
+                filter === st 
+                  ? "bg-slate-900 text-white border-slate-900 shadow-xs" 
+                  : "bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200"
+              )}
             >
-              <option value="All">All Statuses</option>
-              <option value="Pending">Pending</option>
-              <option value="Under Review">Under Review</option>
-              <option value="Proposal Ready">Proposal Ready</option>
-              <option value="Payment Pending">Payment Pending</option>
-              <option value="Accepted">Accepted (Active)</option>
-              <option value="Rejected">Rejected</option>
-            </select>
-          </div>
+              {st}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* REQUESTS TABLE CONTAINER */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+        <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+          <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-700 flex items-center">
+            <ShieldCheck className="w-4 h-4 text-emerald-600 mr-2" /> Transaction Certificate Requests Ledger
+          </h3>
+          <span className="text-[11px] font-semibold text-slate-500">Showing {filteredRequests.length} records</span>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50 border-y border-gray-200">
-                <th className="py-3 px-4 font-semibold text-sm text-gray-600">Request ID</th>
-                <th className="py-3 px-4 font-semibold text-sm text-gray-600">FPO Name</th>
-                <th className="py-3 px-4 font-semibold text-sm text-gray-600">Requested Crops</th>
-                <th className="py-3 px-4 font-semibold text-sm text-gray-600">Qty / Period</th>
-                <th className="py-3 px-4 font-semibold text-sm text-gray-600">Status</th>
-                <th className="py-3 px-4 font-semibold text-sm text-gray-600 text-right">Action</th>
+          <table className="w-full text-left border-collapse text-xs">
+            <thead className="bg-slate-50">
+              <tr>
+                <th className="px-5 py-3 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Request ID & Date</th>
+                <th className="px-5 py-3 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Applicant Seller / FPO</th>
+                <th className="px-5 py-3 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Scope Produce Authorized</th>
+                <th className="px-5 py-3 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Requested Qty / Period</th>
+                <th className="px-5 py-3 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Status</th>
+                <th className="px-5 py-3 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-slate-100 bg-white">
               {filteredRequests.map(req => (
-                <tr key={req.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="py-4 px-4">
-                    <div className="font-medium text-gray-900">{req.id}</div>
-                    <div className="text-xs text-gray-500">{new Date(req.requestDate).toLocaleDateString()}</div>
+                <tr key={req.id} className="hover:bg-slate-50/80 transition-colors">
+                  <td className="px-5 py-3.5 whitespace-nowrap">
+                    <span 
+                      onClick={() => navigate(`/dashboard/tc/requests/${req.id}`)}
+                      className="font-mono font-extrabold text-emerald-700 hover:underline cursor-pointer text-xs block"
+                    >
+                      {req.id}
+                    </span>
+                    <span className="text-[10px] text-slate-400 block">{new Date(req.requestDate).toLocaleDateString()}</span>
                   </td>
-                  <td className="py-4 px-4 font-medium text-gray-900">{req.fpoName}</td>
-                  <td className="py-4 px-4 text-sm text-gray-600">{req.crops.join(', ')}</td>
-                  <td className="py-4 px-4">
-                    <div className="text-sm text-gray-900">{req.expectedQty} MT</div>
-                    <div className="text-xs text-gray-500">{req.usagePeriod} Months</div>
+
+                  <td className="px-5 py-3.5 whitespace-nowrap font-bold text-slate-900 text-xs">
+                    {req.fpoName}
                   </td>
-                  <td className="py-4 px-4">
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border
-                      ${req.status === 'Pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' : 
-                        req.status === 'Accepted' ? 'bg-green-50 text-green-700 border-green-200' :
-                        req.status === 'Proposal Ready' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                        req.status === 'Payment Pending' ? 'bg-purple-50 text-purple-700 border-purple-200' :
-                        'bg-gray-50 text-gray-700 border-gray-200'}`}>
-                      {req.status === 'Pending' && <Clock className="w-3 h-3 mr-1" />}
-                      {req.status === 'Accepted' && <CheckCircle2 className="w-3 h-3 mr-1" />}
+
+                  <td className="px-5 py-3.5 whitespace-nowrap text-slate-800 font-semibold text-xs">
+                    {req.crops.join(', ')}
+                  </td>
+
+                  <td className="px-5 py-3.5 whitespace-nowrap">
+                    <strong className="text-slate-900 block text-xs">{req.expectedQty} MT</strong>
+                    <span className="text-[10px] text-slate-500 block">{req.usagePeriod} Months Validity</span>
+                  </td>
+
+                  <td className="px-5 py-3.5 whitespace-nowrap">
+                    <span className={clsx(
+                      "px-2.5 py-1 rounded-full text-[10px] font-extrabold border inline-flex items-center gap-1",
+                      req.status === 'Pending' ? 'bg-amber-100 text-amber-800 border-amber-300' : 
+                      req.status === 'Accepted' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
+                      req.status === 'Proposal Ready' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                      req.status === 'Payment Pending' ? 'bg-purple-100 text-purple-800 border-purple-300' :
+                      'bg-slate-100 text-slate-700 border-slate-200'
+                    )}>
+                      {req.status === 'Pending' && <Clock className="w-3 h-3" />}
+                      {req.status === 'Accepted' && <CheckCircle2 className="w-3 h-3" />}
                       {req.status}
                     </span>
                   </td>
-                  <td className="py-4 px-4 text-right">
+
+                  <td className="px-5 py-3.5 whitespace-nowrap text-right">
                     <button 
                       onClick={() => navigate(`/dashboard/tc/requests/${req.id}`)}
-                      className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary-dark"
+                      className="px-3.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-extrabold rounded-xl shadow-xs transition-all inline-flex items-center gap-1"
                     >
-                      View Details <ChevronRight className="w-4 h-4" />
+                      View Details <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                   </td>
                 </tr>
               ))}
               {filteredRequests.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-gray-500">
-                    <div className="flex flex-col items-center justify-center">
-                      <FileText className="w-12 h-12 text-gray-300 mb-3" />
-                      <p>No requests found in this category.</p>
-                    </div>
+                  <td colSpan={6} className="py-12 text-center text-slate-400 italic">
+                    <FileText className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                    No TC requests found matching your filter criteria.
                   </td>
                 </tr>
               )}
@@ -124,6 +197,7 @@ export default function TCProviderDashboard() {
           </table>
         </div>
       </div>
+
     </div>
   );
 }

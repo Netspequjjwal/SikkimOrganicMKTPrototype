@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSellerRegistration, SellerType } from '../../context/SellerRegistrationContext';
+import toast from 'react-hot-toast';
 import { UploadCloud, FileText, CheckCircle, AlertCircle, X, ChevronRight, ChevronLeft, Building2, Users, Leaf, Truck, ArrowLeft, ArrowRight, Save } from 'lucide-react';
 
 const STEPS = [
@@ -34,6 +35,7 @@ const SellerRegistrationWizard: React.FC = () => {
     district: 'Gangtok',
     pinCode: '737101',
     businessActivities: ['Production', 'Aggregation', 'Trading'],
+    scopeVerifiedCrops: ['Large Cardamom', 'Dzongu Ginger', 'Lakadong Turmeric', 'Buckwheat', 'Sikkim Mandarin', 'Dalle Khursani'],
     certificationSystem: 'NPOP',
     certificationBody: 'Sikkim State Organic Certification Agency (SSOCA)',
     scopeCertNumber: 'ORG/SC/2026/001',
@@ -54,6 +56,28 @@ const SellerRegistrationWizard: React.FC = () => {
   const [files, setFiles] = useState<Record<string, File | null>>({});
   const [declarations, setDeclarations] = useState({ decl1: false, decl2: false });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [customCropInput, setCustomCropInput] = useState('');
+
+  const handleAddCrop = (cropName: string) => {
+    const trimmed = cropName.trim();
+    if (!trimmed) return;
+    const currentCrops = formData.scopeVerifiedCrops || [];
+    if (!currentCrops.includes(trimmed)) {
+      setFormData((prev: any) => ({
+        ...prev,
+        scopeVerifiedCrops: [...currentCrops, trimmed]
+      }));
+    }
+    setCustomCropInput('');
+  };
+
+  const handleRemoveCrop = (cropName: string) => {
+    const currentCrops = formData.scopeVerifiedCrops || [];
+    setFormData((prev: any) => ({
+      ...prev,
+      scopeVerifiedCrops: currentCrops.filter((c: string) => c !== cropName)
+    }));
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target as any;
@@ -69,6 +93,14 @@ const SellerRegistrationWizard: React.FC = () => {
           if (index > -1) currentActivities.splice(index, 1);
         }
         setFormData((prev: any) => ({ ...prev, businessActivities: currentActivities }));
+      } else if (name === 'scopeVerifiedCrops') {
+        const currentCrops = [...(formData.scopeVerifiedCrops || [])];
+        if (checked) currentCrops.push(value);
+        else {
+          const index = currentCrops.indexOf(value);
+          if (index > -1) currentCrops.splice(index, 1);
+        }
+        setFormData((prev: any) => ({ ...prev, scopeVerifiedCrops: currentCrops }));
       } else {
         setFormData((prev: any) => ({ ...prev, [name]: checked }));
       }
@@ -156,6 +188,7 @@ const SellerRegistrationWizard: React.FC = () => {
         certificationSystem: formData.certificationSystem,
         certificationBody: formData.certificationBody,
         scopeCertNumber: formData.scopeCertNumber,
+        scopeVerifiedCrops: formData.scopeVerifiedCrops,
         noOfFarmers: Number(formData.noOfFarmers) || undefined,
         cultivatedArea: Number(formData.cultivatedArea) || undefined,
         icsAvailability: formData.icsAvailability,
@@ -281,6 +314,99 @@ const SellerRegistrationWizard: React.FC = () => {
           <input type="text" name="scopeCertNumber" value={formData.scopeCertNumber} onChange={handleInputChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm p-2.5 border" />
           {errors.scopeCertNumber && <p className="text-red-500 text-xs mt-1">{errors.scopeCertNumber}</p>}
         </div>
+      </div>
+
+      {/* Scope Certified Organic Produces Hybrid Selector (Dropdown + Free Text) */}
+      <div className="space-y-4 p-5 bg-emerald-50/80 border border-emerald-300 rounded-2xl">
+        <div>
+          <label className="block text-sm font-extrabold text-slate-900 flex items-center">
+            <span className="w-2 h-2 rounded-full bg-emerald-600 mr-2"></span>
+            Scope Certified Organic Produces Authorized for Listing *
+          </label>
+          <p className="text-xs text-slate-600 mt-1">
+            Select items from the pre-filled dropdown list OR type custom produce names as authorized on your active Scope Certificate.
+          </p>
+        </div>
+
+        {/* Selected Crops Chips List */}
+        <div className="flex flex-wrap gap-2 min-h-[42px] p-3 bg-white rounded-xl border border-emerald-200">
+          {(formData.scopeVerifiedCrops || []).length === 0 ? (
+            <span className="text-xs text-slate-400 italic">No produces selected yet. Use the dropdown or text box below to add crops.</span>
+          ) : (
+            (formData.scopeVerifiedCrops || []).map((crop: string) => (
+              <span key={crop} className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-700 text-white font-bold text-xs rounded-full shadow-xs">
+                <span>✓ {crop}</span>
+                <button 
+                  type="button" 
+                  onClick={() => handleRemoveCrop(crop)}
+                  className="w-4 h-4 rounded-full bg-emerald-800 hover:bg-emerald-900 flex items-center justify-center text-white text-[10px] font-extrabold"
+                  title="Remove crop"
+                >
+                  ×
+                </button>
+              </span>
+            ))
+          )}
+        </div>
+
+        {/* Input Controls: Pre-filled Dropdown + Free Text Add */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+          {/* 1. Pre-filled Dropdown */}
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+              Select from Pre-filled Scope Produces
+            </label>
+            <select 
+              onChange={e => {
+                if (e.target.value) {
+                  handleAddCrop(e.target.value);
+                  e.target.value = '';
+                }
+              }}
+              className="w-full p-2.5 bg-white border border-emerald-300 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500"
+            >
+              <option value="">-- Choose Pre-filled Produce --</option>
+              {[
+                'Large Cardamom', 'Dzongu Ginger', 'Lakadong Turmeric', 'Buckwheat', 
+                'Sikkim Mandarin', 'Dalle Khursani', 'Passion Fruit', 'Cymbidium Orchid', 
+                'Black Cardamom', 'Organic Honey', 'Temi Tea', 'Organic Rajma'
+              ].filter(c => !(formData.scopeVerifiedCrops || []).includes(c)).map(c => (
+                <option key={c} value={c}>+ {c}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* 2. Free Text Custom Input */}
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+              Or Type Custom Produce Name
+            </label>
+            <div className="flex gap-2">
+              <input 
+                type="text" 
+                value={customCropInput}
+                onChange={e => setCustomCropInput(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddCrop(customCropInput);
+                  }
+                }}
+                placeholder="e.g. Organic Kiwi / Red Rice"
+                className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500"
+              />
+              <button 
+                type="button"
+                onClick={() => handleAddCrop(customCropInput)}
+                className="px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs rounded-xl shadow-xs shrink-0"
+              >
+                + Add
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {errors.scopeVerifiedCrops && <p className="text-red-500 text-xs mt-1 font-bold">{errors.scopeVerifiedCrops}</p>}
       </div>
     </div>
   );
@@ -434,18 +560,23 @@ const SellerRegistrationWizard: React.FC = () => {
   const stepsContent = [renderStep0, renderStep1, renderStep2, renderStep3, renderStep4, renderStep5, renderStep6];
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 pb-12 mt-6">
+    <div className="max-w-5xl mx-auto space-y-6 pb-20 mt-4 sm:mt-6">
       {/* Header */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="px-6 py-6 border-b border-gray-200 bg-gray-50/50">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+        <div className="p-4 sm:p-6 border-b border-slate-200 bg-white">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Unified Seller Registration</h1>
-              <p className="mt-1 text-sm text-gray-500">Complete your profile to access the organic marketplace</p>
+            <div className="flex items-center space-x-3">
+              <div className="p-3 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-2xl shrink-0">
+                <Building2 className="w-6 h-6" />
+              </div>
+              <div>
+                <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Unified Seller Registration</h1>
+                <p className="mt-0.5 text-xs sm:text-sm text-slate-500">Complete your compliance profile to list & sell certified organic produces</p>
+              </div>
             </div>
             <button 
               onClick={() => navigate('/dashboard')}
-              className="text-gray-500 hover:text-gray-700 text-sm font-medium flex items-center"
+              className="text-slate-400 hover:text-slate-700 text-xs font-bold transition-colors"
             >
               Cancel
             </button>
@@ -453,23 +584,23 @@ const SellerRegistrationWizard: React.FC = () => {
         </div>
 
         {/* Progress Stepper */}
-        <div className="px-6 py-4 border-b border-gray-200 bg-white overflow-x-auto">
+        <div className="px-4 sm:px-6 py-4 border-b border-slate-200 bg-slate-50/60 overflow-x-auto">
           <div className="flex justify-between min-w-max md:min-w-0">
             {STEPS.map((step, idx) => (
               <div key={step} className="flex flex-col items-center relative z-10 w-full px-2">
                 <div className="flex items-center justify-center w-full">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold z-10 flex-shrink-0
-                    ${currentStep > idx ? 'bg-green-500 text-white' : 
-                      currentStep === idx ? 'bg-primary text-white ring-4 ring-primary/20' : 
-                      'bg-gray-100 text-gray-400 border border-gray-200'}`}>
-                    {currentStep > idx ? <CheckCircle className="w-5 h-5" /> : idx + 1}
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-extrabold z-10 flex-shrink-0 transition-all
+                    ${currentStep > idx ? 'bg-emerald-600 text-white' : 
+                      currentStep === idx ? 'bg-amber-400 text-slate-950 ring-4 ring-amber-400/30' : 
+                      'bg-slate-200 text-slate-500 border border-slate-300'}`}>
+                    {currentStep > idx ? <CheckCircle className="w-4 h-4" /> : idx + 1}
                   </div>
                   {idx < STEPS.length - 1 && (
-                    <div className={`h-1 w-full min-w-[30px] flex-1 mx-2 rounded ${currentStep > idx ? 'bg-green-500' : 'bg-gray-200'}`} />
+                    <div className={`h-1 w-full min-w-[20px] flex-1 mx-1.5 rounded ${currentStep > idx ? 'bg-emerald-600' : 'bg-slate-200'}`} />
                   )}
                 </div>
-                <div className="mt-3 text-center hidden md:block">
-                  <p className={`text-[11px] font-bold uppercase tracking-wider ${currentStep >= idx ? 'text-gray-900' : 'text-gray-400'}`}>{step}</p>
+                <div className="mt-2 text-center hidden md:block">
+                  <p className={`text-[10px] font-extrabold uppercase tracking-wider ${currentStep >= idx ? 'text-slate-900' : 'text-slate-400'}`}>{step}</p>
                 </div>
               </div>
             ))}
@@ -477,18 +608,19 @@ const SellerRegistrationWizard: React.FC = () => {
         </div>
 
         {/* Form Content */}
-        <div className="bg-white min-h-[400px] p-6">
+        <div className="bg-white min-h-[400px] p-4 sm:p-8">
           {stepsContent[currentStep]()}
         </div>
 
         {/* Footer Actions */}
-        <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
+        <div className="p-4 sm:p-6 border-t border-slate-200 bg-slate-50/50 flex items-center justify-between">
           <div>
             <button
               type="button"
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 flex items-center"
+              onClick={() => toast.success('Registration draft saved successfully.')}
+              className="px-4 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-300 rounded-xl shadow-xs hover:bg-slate-100 flex items-center gap-1.5"
             >
-              <Save className="w-4 h-4 mr-2 text-gray-400" /> Save as Draft
+              <Save className="w-4 h-4 text-slate-400" /> Save as Draft
             </button>
           </div>
           <div className="flex space-x-3">
@@ -496,27 +628,27 @@ const SellerRegistrationWizard: React.FC = () => {
               type="button"
               onClick={handleBack}
               disabled={currentStep === 0}
-              className={`px-4 py-2 border rounded-md shadow-sm text-sm font-medium flex items-center
-                ${currentStep === 0 ? 'border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed' : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50'}`}
+              className={`px-4 py-2 border rounded-xl shadow-xs text-xs font-bold flex items-center gap-1.5 transition-all
+                ${currentStep === 0 ? 'border-slate-200 text-slate-300 bg-slate-50 cursor-not-allowed' : 'border-slate-300 text-slate-700 bg-white hover:bg-slate-100'}`}
             >
-              <ArrowLeft className="w-4 h-4 mr-2" /> Previous
+              <ArrowLeft className="w-4 h-4" /> Previous
             </button>
             
             {currentStep < STEPS.length - 1 ? (
               <button
                 type="button"
                 onClick={handleNext}
-                className="inline-flex justify-center items-center px-6 py-2 border border-transparent shadow-sm text-sm font-bold rounded-md text-white bg-primary hover:bg-primary-dark"
+                className="inline-flex justify-center items-center px-6 py-2.5 border border-transparent shadow-xs text-xs font-extrabold rounded-xl text-white bg-emerald-700 hover:bg-emerald-800 transition-all gap-1.5"
               >
-                Next Step <ArrowRight className="w-4 h-4 ml-2" />
+                Next Step <ArrowRight className="w-4 h-4" />
               </button>
             ) : (
               <button
                 type="button"
                 onClick={handleSubmit}
-                className="inline-flex justify-center items-center px-6 py-2 border border-transparent shadow-sm text-sm font-bold rounded-md text-white bg-green-600 hover:bg-green-700"
+                className="inline-flex justify-center items-center px-6 py-2.5 border border-transparent shadow-xs text-xs font-extrabold rounded-xl text-white bg-emerald-700 hover:bg-emerald-800 transition-all gap-1.5"
               >
-                Submit Registration <CheckCircle className="w-4 h-4 ml-2" />
+                Submit Registration <CheckCircle className="w-4 h-4" />
               </button>
             )}
           </div>

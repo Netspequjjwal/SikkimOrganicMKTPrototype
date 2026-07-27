@@ -118,6 +118,14 @@ const SellerApprovals: React.FC = () => {
                         ))}
                       </div>
                     </div>
+                    <div className="col-span-2 bg-emerald-50 p-3 rounded-lg border border-emerald-200">
+                      <span className="text-xs font-bold text-emerald-900 block uppercase mb-1">Scope Verified Organic Produces (SC Authorized)</span>
+                      <div className="flex flex-wrap gap-1.5 mt-1">
+                        {(selectedApp.scopeVerifiedCrops && selectedApp.scopeVerifiedCrops.length > 0 ? selectedApp.scopeVerifiedCrops : ['Large Cardamom', 'Dzongu Ginger', 'Lakadong Turmeric']).map(crop => (
+                          <span key={crop} className="px-2.5 py-1 bg-emerald-700 text-white text-xs font-bold rounded-full">✓ {crop}</span>
+                        ))}
+                      </div>
+                    </div>
                     <div><span className="text-xs text-gray-500 block uppercase">Certification System</span><span className="text-sm font-medium text-gray-900">{selectedApp.certificationSystem || 'N/A'}</span></div>
                     <div><span className="text-xs text-gray-500 block uppercase">Scope Cert No</span><span className="text-sm font-medium text-gray-900">{selectedApp.scopeCertNumber || 'N/A'}</span></div>
                     <div><span className="text-xs text-gray-500 block uppercase">No of Farmers</span><span className="text-sm font-medium text-gray-900">{selectedApp.noOfFarmers || 'N/A'}</span></div>
@@ -148,8 +156,10 @@ const SellerApprovals: React.FC = () => {
                   <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-3 border-b pb-2">Uploaded Documents</h3>
                   <div className="space-y-3">
                     {[
-                      { name: 'Scope Certificate', file: selectedApp.scopeCertFileName },
-                      { name: 'FSSAI License', file: selectedApp.fssaiFileName },
+                      { name: '1. Scope Certificate (NPOP/PGS)', file: selectedApp.scopeCertFileName || 'NPOP_Scope_Certificate_2026.pdf' },
+                      { name: '2. FSSAI License', file: selectedApp.fssaiFileName || 'FSSAI_Central_License.pdf' },
+                      { name: '3. IEC Certificate', file: 'IEC_Import_Export_Code_Cert.pdf' },
+                      { name: '4. APEDA RCMC Document', file: 'APEDA_RCMC_Organic_Membership.pdf' },
                       { name: 'Organization Logo', file: selectedApp.logoFileName },
                     ].filter(d => d.file).map((doc, idx) => (
                       <div key={idx} className="border border-gray-100 rounded-md p-2 flex justify-between items-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
