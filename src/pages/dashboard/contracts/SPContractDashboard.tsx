@@ -12,20 +12,17 @@ const SPContractDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'All' | 'Draft' | 'Pending Buyer' | 'Active' | 'Completed'>('All');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // In a real app, we filter by SP ID. Here we just show all since it's dummy data.
-  // Assuming the current user is 'Sikkim Organic Alive' or 'East Sikkim Farmers Co-op'
-  
   const getStatusBadge = (status: string) => {
     switch(status) {
-      case 'Draft': return <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-1 rounded-md font-bold uppercase tracking-wider">{status}</span>;
-      case 'Pending Buyer Review': return <span className="bg-yellow-100 text-yellow-800 text-xs px-2.5 py-1 rounded-md font-bold uppercase tracking-wider">{status}</span>;
-      case 'Awaiting Signature': return <span className="bg-blue-100 text-blue-800 text-xs px-2.5 py-1 rounded-md font-bold uppercase tracking-wider">{status}</span>;
-      case 'Legally Executed': return <span className="bg-teal-100 text-teal-800 text-xs px-2.5 py-1 rounded-md font-bold uppercase tracking-wider">{status}</span>;
-      case 'Payment Pending': return <span className="bg-orange-100 text-orange-800 text-xs px-2.5 py-1 rounded-md font-bold uppercase tracking-wider">{status}</span>;
-      case 'Partially Paid': return <span className="bg-blue-100 text-blue-800 text-xs px-2.5 py-1 rounded-md font-bold uppercase tracking-wider">{status}</span>;
-      case 'Fully Paid': return <span className="bg-green-100 text-green-800 text-xs px-2.5 py-1 rounded-md font-bold uppercase tracking-wider">{status}</span>;
-      case 'Completed': return <span className="bg-green-100 text-green-800 text-xs px-2.5 py-1 rounded-md font-bold uppercase tracking-wider">{status}</span>;
-      default: return <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-1 rounded-md font-bold uppercase tracking-wider">{status}</span>;
+      case 'Draft': return <span className="bg-slate-100 text-slate-800 border border-slate-200 text-[10px] px-2.5 py-1 rounded-full font-extrabold">{status}</span>;
+      case 'Pending Buyer Review': return <span className="bg-amber-100 text-amber-800 border border-amber-300 text-[10px] px-2.5 py-1 rounded-full font-extrabold">{status}</span>;
+      case 'Awaiting Signature': return <span className="bg-blue-100 text-blue-800 border border-blue-300 text-[10px] px-2.5 py-1 rounded-full font-extrabold">{status}</span>;
+      case 'Legally Executed': return <span className="bg-teal-100 text-teal-800 border border-teal-300 text-[10px] px-2.5 py-1 rounded-full font-extrabold">{status}</span>;
+      case 'Payment Pending': return <span className="bg-orange-100 text-orange-800 border border-orange-300 text-[10px] px-2.5 py-1 rounded-full font-extrabold">{status}</span>;
+      case 'Partially Paid': return <span className="bg-blue-100 text-blue-800 border border-blue-300 text-[10px] px-2.5 py-1 rounded-full font-extrabold">{status}</span>;
+      case 'Fully Paid': return <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] px-2.5 py-1 rounded-full font-extrabold">{status}</span>;
+      case 'Completed': return <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] px-2.5 py-1 rounded-full font-extrabold">{status}</span>;
+      default: return <span className="bg-slate-100 text-slate-800 border border-slate-200 text-[10px] px-2.5 py-1 rounded-full font-extrabold">{status}</span>;
     }
   };
 
@@ -63,146 +60,160 @@ const SPContractDashboard: React.FC = () => {
     return 'View Contract';
   };
 
+  const activeCount = contracts.filter(c => ['Legally Executed', 'Payment Pending', 'Partially Paid'].includes(c.status)).length;
+  const pendingSignaturesCount = contracts.filter(c => c.status === 'Pending Buyer Review').length;
+  const paymentsPendingCount = contracts.filter(c => c.status === 'Payment Pending' || c.status === 'Partially Paid').length;
+  const totalValueLakhs = (contracts.reduce((acc, c) => acc + c.totalAmount, 0) / 100000).toFixed(2);
+
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Contract Management</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage your digital procurement agreements and payment schedules.</p>
+    <div className="max-w-7xl mx-auto space-y-6 pb-20">
+      
+      {/* Header Banner Card */}
+      <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center space-x-3">
+          <div className="p-3 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-2xl shrink-0">
+            <FileSignature className="w-7 h-7" />
+          </div>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+              Seller Digital Contracts & Agreements
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 mt-1">
+              Legally binding smart digital procurement contracts, e-signatures, and payment milestone terms.
+            </p>
+          </div>
         </div>
-        <div className="flex space-x-3">
-          <button onClick={() => navigate('/dashboard/contracts/repository')} className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors flex items-center">
-            <Search className="w-4 h-4 mr-2" /> Global Repository
-          </button>
+
+        <button 
+          onClick={() => navigate('/dashboard/contracts/repository')} 
+          className="px-4 py-2.5 sm:px-5 sm:py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 shrink-0"
+        >
+          <Search className="w-4 h-4" /> Global Contract Repository
+        </button>
+      </div>
+
+      {/* KPI METRICS ROW */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <div className="p-4 bg-blue-50/80 rounded-2xl border border-blue-200 shadow-xs">
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-700 block">Active Executed Contracts</span>
+          <span className="text-xl sm:text-2xl font-black text-blue-900 mt-1 block">{activeCount}</span>
+        </div>
+
+        <div className="p-4 bg-amber-50/80 rounded-2xl border border-amber-200 shadow-xs">
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-700 block">Pending Signatures</span>
+          <span className="text-xl sm:text-2xl font-black text-amber-900 mt-1 block">{pendingSignaturesCount}</span>
+        </div>
+
+        <div className="p-4 bg-orange-50/80 rounded-2xl border border-orange-200 shadow-xs">
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-orange-700 block">Payments Pending</span>
+          <span className="text-xl sm:text-2xl font-black text-orange-900 mt-1 block">{paymentsPendingCount}</span>
+        </div>
+
+        <div className="p-4 bg-emerald-50/80 rounded-2xl border border-emerald-200 shadow-xs">
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 block">Total Contracted Value</span>
+          <span className="text-xl sm:text-2xl font-black text-emerald-900 mt-1 block">₹{totalValueLakhs} L</span>
         </div>
       </div>
 
-      {/* Analytics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Active Contracts</h3>
-            <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
-              <FileSignature className="w-4 h-4 text-blue-600" />
-            </div>
-          </div>
-          <p className="text-3xl font-bold text-gray-900">{contracts.filter(c => ['Legally Executed', 'Payment Pending', 'Partially Paid'].includes(c.status)).length}</p>
+      {/* CONTROL & SEARCH BAR */}
+      <div className="bg-white rounded-2xl p-3 sm:p-4 border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4">
+        <div className="relative flex-1 w-full">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+          <input 
+            type="text" 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search Contract Ref, Buyer Name, Commodity..."
+            className="w-full pl-9 pr-4 py-2 text-xs font-semibold rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Pending Signatures</h3>
-            <div className="w-8 h-8 rounded-full bg-yellow-50 flex items-center justify-center">
-              <Clock className="w-4 h-4 text-yellow-600" />
-            </div>
-          </div>
-          <p className="text-3xl font-bold text-gray-900">{contracts.filter(c => c.status === 'Pending Buyer Review').length}</p>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Payments Pending</h3>
-            <div className="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center">
-              <CreditCard className="w-4 h-4 text-orange-600" />
-            </div>
-          </div>
-          <p className="text-3xl font-bold text-gray-900">{contracts.filter(c => c.status === 'Payment Pending' || c.status === 'Partially Paid').length}</p>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Total Value</h3>
-            <div className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center">
-              <DollarSign className="w-4 h-4 text-green-600" />
-            </div>
-          </div>
-          <p className="text-3xl font-bold text-gray-900">
-            ₹{(contracts.reduce((acc, c) => acc + c.totalAmount, 0) / 100000).toFixed(2)}L
-          </p>
+
+        <div className="flex flex-wrap items-center gap-1.5 w-full md:w-auto">
+          {['All', 'Draft', 'Pending Buyer', 'Active', 'Completed'].map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab as any)}
+              className={clsx(
+                "px-3 py-1.5 text-[11px] font-extrabold rounded-full transition-all border",
+                activeTab === tab 
+                  ? "bg-slate-900 text-white border-slate-900 shadow-xs" 
+                  : "bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200"
+              )}
+            >
+              {tab}
+            </button>
+          ))}
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        {/* Tabs & Search */}
-        <div className="border-b border-gray-200 px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="flex space-x-1">
-            {['All', 'Draft', 'Pending Buyer', 'Active', 'Completed'].map(tab => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab as any)}
-                className={clsx(
-                  "px-4 py-2 text-sm font-medium rounded-lg transition-colors",
-                  activeTab === tab ? "bg-primary text-white" : "text-gray-600 hover:bg-gray-100"
-                )}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-          <div className="relative w-full md:w-64">
-            <input 
-              type="text"
-              placeholder="Search contracts..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
-            />
-            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
-          </div>
+      {/* CONTRACTS TABLE CONTAINER */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+        <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+          <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-700 flex items-center">
+            <FileSignature className="w-4 h-4 text-emerald-600 mr-2" /> B2B Procurement Contracts Ledger
+          </h3>
+          <span className="text-[11px] font-semibold text-slate-500">Showing {filteredContracts.length} records</span>
         </div>
 
-        {/* Contract List */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Contract ID</th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Buyer</th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Product & Qty</th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Value</th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Action</th>
+          <table className="w-full text-left border-collapse text-xs">
+            <thead className="bg-slate-50">
+              <tr>
+                <th className="px-5 py-3 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Contract ID & Ref</th>
+                <th className="px-5 py-3 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Buyer Entity</th>
+                <th className="px-5 py-3 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Produce & Qty</th>
+                <th className="px-5 py-3 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Contract Value</th>
+                <th className="px-5 py-3 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Status</th>
+                <th className="px-5 py-3 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-slate-100 bg-white">
               {filteredContracts.map(contract => (
-                <tr key={contract.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4">
+                <tr key={contract.id} className="hover:bg-slate-50/80 transition-colors">
+                  <td className="px-5 py-3.5 whitespace-nowrap">
                     <button 
                       onClick={() => navigate(`/dashboard/contracts/review/${contract.id}`)}
                       className="text-left group block"
                     >
-                      <p className="font-bold text-primary group-hover:underline flex items-center">
+                      <p className="font-mono font-extrabold text-emerald-700 group-hover:underline flex items-center text-xs">
                         {contract.contractRef || 'Pending Ref.'}
                         <ExternalLink className="w-3 h-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />
                       </p>
-                      <p className="text-xs text-gray-500 mt-1">Enq: {contract.enquiryId}</p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">Enq: {contract.enquiryId}</p>
                     </button>
                   </td>
-                  <td className="px-6 py-4">
-                    <p className="font-medium text-gray-900">{contract.buyerName}</p>
-                    <p className="text-xs text-gray-500 mt-1">{contract.procurementType}</p>
+
+                  <td className="px-5 py-3.5 whitespace-nowrap">
+                    <p className="font-bold text-slate-900 text-xs">{contract.buyerName}</p>
+                    <p className="text-[10px] text-slate-500 mt-0.5">{contract.procurementType}</p>
                   </td>
-                  <td className="px-6 py-4">
-                    <p className="font-medium text-gray-900">{contract.product}</p>
-                    <p className="text-xs text-gray-500 mt-1">{contract.quantity} {contract.uom}</p>
+
+                  <td className="px-5 py-3.5 whitespace-nowrap">
+                    <p className="font-extrabold text-slate-900 text-xs">{contract.product}</p>
+                    <p className="text-[10px] text-slate-500 mt-0.5">{contract.quantity} {contract.uom}</p>
                   </td>
-                  <td className="px-6 py-4">
-                    <p className="font-bold text-gray-900 font-mono">₹{contract.totalAmount.toLocaleString()}</p>
+
+                  <td className="px-5 py-3.5 whitespace-nowrap">
+                    <p className="font-black text-slate-900 font-mono text-xs">₹{contract.totalAmount.toLocaleString()}</p>
                   </td>
-                  <td className="px-6 py-4">
+
+                  <td className="px-5 py-3.5 whitespace-nowrap">
                     {getStatusBadge(contract.status)}
                   </td>
-                  <td className="px-6 py-4 text-right">
+
+                  <td className="px-5 py-3.5 whitespace-nowrap text-right">
                     <button 
                       onClick={() => handleContractAction(contract)}
                       className={clsx(
-                        "inline-flex items-center px-3 py-1.5 border rounded-md text-sm font-medium transition-colors",
+                        "inline-flex items-center px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all shadow-xs gap-1.5",
                         contract.status === 'Legally Executed' && !contract.paymentConfigured 
-                          ? "bg-green-600 text-white border-transparent hover:bg-green-700" 
+                          ? "bg-emerald-700 hover:bg-emerald-800 text-white" 
                           : contract.status === 'Draft'
-                            ? "bg-primary text-white border-transparent hover:bg-primary-dark"
-                            : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                            ? "bg-slate-900 hover:bg-slate-800 text-white"
+                            : "bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300"
                       )}
                     >
-                      {contract.status === 'Legally Executed' && !contract.paymentConfigured && <CreditCard className="w-4 h-4 mr-1.5" />}
+                      {contract.status === 'Legally Executed' && !contract.paymentConfigured && <CreditCard className="w-3.5 h-3.5" />}
                       {getActionText(contract)}
                     </button>
                   </td>
@@ -210,7 +221,7 @@ const SPContractDashboard: React.FC = () => {
               ))}
               {filteredContracts.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={6} className="px-6 py-12 text-center text-slate-400 italic">
                     No contracts found matching your criteria.
                   </td>
                 </tr>
@@ -219,6 +230,7 @@ const SPContractDashboard: React.FC = () => {
           </table>
         </div>
       </div>
+
     </div>
   );
 };

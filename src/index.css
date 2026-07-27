@@ -7,12 +7,41 @@
   --color-earth: #B7791F;
   --color-earth-light: #D69E2E;
   --color-earth-dark: #975A16;
-  --font-sans: "Inter", sans-serif;
+
+  /* Unified Font System — Geist by Vercel */
+  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "Cascadia Code", monospace;
 }
 
 @layer base {
+  html {
+    font-family: "Geist", ui-sans-serif, system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
   body {
-    background-color: var(--color-gray-50);
-    color: var(--color-gray-800);
+    background-color: var(--color-gray-50, #f9fafb);
+    color: var(--color-gray-800, #1f2937);
+    font-family: "Geist", ui-sans-serif, system-ui, -apple-system, sans-serif;
+    font-feature-settings: "ss01", "ss02";
+    font-variation-settings: normal;
+  }
+
+  /* Geist Mono for all .font-mono classes — ₹ amounts, IDs, contract refs */
+  .font-mono {
+    font-family: "Geist Mono", ui-monospace, monospace;
+  }
+
+  /* Heading tracking — Geist looks best with slightly tight spacing */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Geist", ui-sans-serif, sans-serif;
+    letter-spacing: -0.025em;
   }
 }

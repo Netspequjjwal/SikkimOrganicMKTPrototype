@@ -6,7 +6,7 @@ import { useNegotiation } from '../../context/NegotiationContext';
 import { useActionCenter } from '../../context/ActionCenterContext';
 import { useNotification } from '../../context/NotificationContext';
 import { useBuyerRegistration } from '../../context/BuyerRegistrationContext';
-import type { BuyerEnquiry } from '../../context/NegotiationContext';
+import toast from 'react-hot-toast';
 import { Search, Filter, ShieldCheck, Star, MapPin, Truck, ArrowLeft, ArrowRight, LayoutGrid, List, CheckCircle2, Clock, Info } from 'lucide-react';
 import clsx from 'clsx';
 import cardamomImg from '../../assets/cardamom.jpg';
@@ -15,6 +15,9 @@ import turmericImg from '../../assets/turmeric.jpg';
 import buckwheatImg from '../../assets/buckwheat.jpg';
 import orangesImg from '../../assets/oranges.png';
 import dalleKhursaniImg from '../../assets/dallekhursani.png';
+import sikkimOrganicAliveLogo from '../../assets/sikkim-organic-alive-logo.png';
+import simfedLogo from '../../assets/simfed-logo.png';
+import concedeLogo from '../../assets/concede-logo.png';
 
 const ProductProcurement: React.FC = () => {
   const { cropId } = useParams();
@@ -150,43 +153,55 @@ const ProductProcurement: React.FC = () => {
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6 pb-24">
-        {/* Advanced Filters Sidebar */}
-        <div className="w-full lg:w-72 flex-shrink-0 space-y-6 hidden md:block">
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-            <h3 className="font-semibold text-gray-900 mb-4 flex items-center"><Filter className="w-4 h-4 mr-2" /> Filters</h3>
+        {/* Filters Sidebar */}
+        <div className="w-full lg:w-64 flex-shrink-0 space-y-4 hidden md:block">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+            <h3 className="font-extrabold text-slate-800 text-xs uppercase tracking-widest mb-4 flex items-center gap-2">
+              <Filter className="w-3.5 h-3.5" /> Refine Results
+            </h3>
 
             <div className="space-y-4">
               <div>
-                <label className="text-xs font-semibold text-gray-500 uppercase">Availability Status</label>
+                <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Availability</label>
                 <div className="mt-2 space-y-2">
-                  <label className="flex items-center"><input type="checkbox" className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4" defaultChecked /> <span className="ml-2 text-sm text-gray-700">Ready for Pre-Booking</span></label>
-                  <label className="flex items-center"><input type="checkbox" className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4" defaultChecked /> <span className="ml-2 text-sm text-gray-700">Open for Sale (Harvested)</span></label>
+                  <label className="flex items-center gap-2">
+                    <input type="checkbox" className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 h-4 w-4" defaultChecked />
+                    <span className="text-xs text-slate-700">Pre-Booking Open</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input type="checkbox" className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 h-4 w-4" defaultChecked />
+                    <span className="text-xs text-slate-700">Ready for Sale</span>
+                  </label>
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-gray-100">
-                <label className="text-xs font-semibold text-gray-500 uppercase">District</label>
+              <div className="pt-3 border-t border-slate-100">
+                <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Organic Certification</label>
                 <div className="mt-2 space-y-2">
-                  {['Mangan', 'Geyzing', 'Namchi'].map(d => (
-                    <label key={d} className="flex items-center">
-                      <input type="checkbox" className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4" 
-                        checked={filters.districts.has(d)}
-                        onChange={(e) => {
-                          const newSet = new Set(filters.districts);
-                          if (e.target.checked) newSet.add(d);
-                          else newSet.delete(d);
-                          setFilters({...filters, districts: newSet});
-                        }}
-                      /> 
-                      <span className="ml-2 text-sm text-gray-700">{d}</span>
+                  {['NPOP Certified', 'PGS-India Certified', 'India Organic'].map(cert => (
+                    <label key={cert} className="flex items-center gap-2">
+                      <input type="checkbox" className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 h-4 w-4" />
+                      <span className="text-xs text-slate-700">{cert}</span>
                     </label>
                   ))}
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-gray-100">
-                <label className="text-xs font-semibold text-gray-500 uppercase">Service Providers</label>
-                <div className="mt-2 space-y-2 max-h-40 overflow-y-auto">
+              <div className="pt-3 border-t border-slate-100">
+                <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Seller Type</label>
+                <div className="mt-2 space-y-2">
+                  {['ICS Service Provider', 'Grower Group / FPO', 'Individual Farmer', 'IFFCO Partner'].map(type => (
+                    <label key={type} className="flex items-center gap-2">
+                      <input type="checkbox" className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 h-4 w-4" />
+                      <span className="text-xs text-slate-700">{type}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-slate-100">
+                <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Service Providers</label>
+                <div className="mt-2 space-y-2 max-h-36 overflow-y-auto">
                   {baseSuppliers.map(sp => (
                     <label key={sp.id} className="flex items-center">
                       <input type="checkbox" className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4" 
@@ -226,24 +241,17 @@ const ProductProcurement: React.FC = () => {
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-gray-100">
-                <label className="text-xs font-semibold text-gray-500 uppercase">Min Quantity (MT): {filters.minQty}</label>
-                <input type="range" min="0" max="20" step="0.5" value={filters.minQty} 
-                   onChange={(e) => setFilters({...filters, minQty: parseFloat(e.target.value)})}
-                   className="w-full mt-2 accent-primary" 
-                />
-              </div>
-
-              <div className="pt-4 border-t border-gray-100">
-                <label className="text-xs font-semibold text-gray-500 uppercase">Trust Indicators</label>
+              <div className="pt-3 border-t border-slate-100">
+                <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Quality Assurance</label>
                 <div className="mt-2 space-y-2">
-                  <label className="flex items-center"><input type="checkbox" className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4" /> <span className="ml-2 text-sm text-gray-700 flex items-center">Scope Certificate Available</span></label>
-                  <label className="flex items-center"><input type="checkbox" className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4" /> <span className="ml-2 text-sm text-gray-700">Transaction Cert Available</span></label>
+                  <label className="flex items-center gap-2"><input type="checkbox" className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 h-4 w-4" /> <span className="text-xs text-slate-700">NABL Lab Tested</span></label>
+                  <label className="flex items-center gap-2"><input type="checkbox" className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 h-4 w-4" /> <span className="text-xs text-slate-700">Scope Certificate Available</span></label>
+                  <label className="flex items-center gap-2"><input type="checkbox" className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 h-4 w-4" /> <span className="text-xs text-slate-700">TC Issued</span></label>
                 </div>
               </div>
             </div>
 
-            <button className="w-full mt-6 bg-gray-50 text-gray-700 border border-gray-200 py-2 rounded-lg text-sm font-medium hover:bg-gray-100">Apply Filters</button>
+            <button className="w-full mt-5 bg-emerald-700 hover:bg-emerald-800 text-white py-2 rounded-xl text-xs font-extrabold transition-all">Apply Filters</button>
           </div>
         </div>
 
@@ -268,72 +276,204 @@ const ProductProcurement: React.FC = () => {
           </div>
 
           {suppliers.length === 0 ? (
-            <div className="text-center py-20 bg-white rounded-xl border border-gray-200">
-              <h3 className="text-lg font-medium text-gray-900">No Suppliers Found</h3>
-              <p className="text-gray-500 mt-1">There are currently no approved suppliers for {cropId}.</p>
+            <div className="text-center py-20 bg-white rounded-2xl border border-slate-200">
+              <ShieldCheck className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+              <h3 className="text-base font-bold text-slate-900">No Suppliers Found</h3>
+              <p className="text-slate-500 text-sm mt-1">There are currently no approved suppliers for {cropId}.</p>
             </div>
           ) : viewMode === 'grid' ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-4">
-              {suppliers.map(sp => (
-                <div key={sp.id} className={clsx("bg-white rounded-xl shadow-sm border overflow-hidden flex flex-col transition-all cursor-pointer hover:shadow-md", selectedSuppliers.has(sp.id) ? "border-primary ring-1 ring-primary" : "border-gray-200")} onClick={() => toggleSelection(sp.id)}>
-                  <div className="p-5 flex gap-4">
-                    <div className="w-16 h-16 bg-green-50 rounded-lg flex items-center justify-center flex-shrink-0 border border-green-100">
-                      <ShieldCheck className="w-8 h-8 text-green-600" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between items-start">
-                        <h3 className="font-bold text-gray-900 text-lg leading-tight">{sp.name}</h3>
-                        <input type="checkbox" checked={selectedSuppliers.has(sp.id)} readOnly className="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary ml-2" />
-                      </div>
-                      <div className="flex items-center text-sm text-gray-500 mt-1">
-                        <Star className="w-4 h-4 text-yellow-400 mr-1 fill-current" />
-                        <span className="font-medium text-gray-700 mr-1">{sp.rating}</span>
-                        <span>({sp.orders} Orders)</span>
-                      </div>
-                      <div className="mt-2">
-                        {getStatusBadge(sp)}
-                      </div>
-                    </div>
-                  </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {suppliers.map(sp => {
+                // Mock per-supplier produce attributes for richer card display
+                const varieties: Record<string, string> = {
+                  'Sikkim Organic Alive': 'Ramsey (Bharlang)',
+                  'SIMFED': 'Varlang (Premium)',
+                  'Concede Service Provider Agency': 'Golsey',
+                };
+                const grades: Record<string, string> = {
+                  'Sikkim Organic Alive': 'Grade A+',
+                  'SIMFED': 'Grade A',
+                  'Concede Service Provider Agency': 'Grade B+',
+                };
+                const certCategories: Record<string, string> = {
+                  'Sikkim Organic Alive': 'NPOP Certified',
+                  'SIMFED': 'NPOP + India Organic',
+                  'Concede Service Provider Agency': 'PGS-India Certified',
+                };
+                const packagingTypes: Record<string, string> = {
+                  'Sikkim Organic Alive': 'Gunny Bags (50 KG)',
+                  'SIMFED': 'Jute Bags (25 KG)',
+                  'Concede Service Provider Agency': 'Bulk (Loose)',
+                };
+                const labParams: Record<string, string[]> = {
+                  'Sikkim Organic Alive': ['Pesticide Residue: ND', 'Moisture: <12%', 'Essential Oil: >3%'],
+                  'SIMFED': ['Pesticide Residue: ND', 'Moisture: <11%', 'Curcumin: >5%'],
+                  'Concede Service Provider Agency': ['Pesticide Residue: ND', 'Moisture: <13%'],
+                };
+                const sellerLogos: Record<string, string> = {
+                  'Sikkim Organic Alive': sikkimOrganicAliveLogo,
+                  'SIMFED': simfedLogo,
+                  'Concede Service Provider Agency': concedeLogo,
+                };
+                const sellerLogo = sellerLogos[sp.name] || null;
+                const sellerTypes: Record<string, string> = {
+                  'Sikkim Organic Alive': 'ICS',
+                  'SIMFED': 'IFFCO',
+                  'Concede Service Provider Agency': 'ICS',
+                };
+                const variety = varieties[sp.name] || 'Standard';
+                const grade = grades[sp.name] || 'Grade A';
+                const certCategory = certCategories[sp.name] || 'NPOP Certified';
+                const packaging = packagingTypes[sp.name] || 'Gunny Bags';
+                const labTests = labParams[sp.name] || ['Pesticide Residue: ND', 'Moisture: <12%'];
+                const sellerType = sellerTypes[sp.name] || 'ICS';
+                const logoSrc = sellerLogo;
 
-                  <div className="bg-gray-50 px-5 py-4 border-t border-gray-100 grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <p className="text-gray-500 text-xs uppercase tracking-wide">Available Qty</p>
-                      <p className="font-bold text-gray-900">{(sp.hasPhase2 ? sp.actualYield : sp.estimatedYield).toFixed(1)} MT</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500 text-xs uppercase tracking-wide">MOQ</p>
-                      <p className="font-medium text-gray-900">{sp.moq}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500 text-xs uppercase tracking-wide">District</p>
-                      <p className="font-medium text-gray-900 flex items-center"><MapPin className="w-3 h-3 mr-1 text-gray-400" /> {sp.districts.join(', ')}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500 text-xs uppercase tracking-wide">Response Time</p>
-                      <p className="font-medium text-gray-900">{sp.responseTime}</p>
-                    </div>
-                  </div>
+                return (
+                  <div
+                    key={sp.id}
+                    className={clsx(
+                      'bg-white rounded-2xl border overflow-hidden flex flex-col transition-all cursor-pointer group',
+                      selectedSuppliers.has(sp.id)
+                        ? 'border-emerald-500 ring-2 ring-emerald-400/40 shadow-lg'
+                        : 'border-slate-200 hover:border-emerald-300 hover:shadow-md'
+                    )}
+                    onClick={() => toggleSelection(sp.id)}
+                  >
+                    {/* Card Header: Logo + Seller Name + Status + Select */}
+                    <div className="p-4 flex items-start gap-3">
+                      {/* Seller Logo */}
+                      <div className="w-14 h-14 bg-white rounded-xl border border-slate-200 flex items-center justify-center shrink-0 shadow-xs overflow-hidden p-1">
+                        {logoSrc ? (
+                          <img
+                            src={logoSrc}
+                            alt={`${sp.name} logo`}
+                            className="w-full h-full object-contain"
+                            onError={(e) => {
+                              // Fallback to initials if image fails
+                              (e.target as HTMLImageElement).style.display = 'none';
+                              (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                            }}
+                          />
+                        ) : null}
+                        <span className={`${logoSrc ? 'hidden' : ''} text-sm font-extrabold text-emerald-700 bg-emerald-50 w-full h-full flex items-center justify-center rounded-lg`}>
+                          {sp.name.split(' ').map((w: string) => w[0]).slice(0, 2).join('')}
+                        </span>
+                      </div>
 
-                  <div className="p-4 bg-white border-t border-gray-100 flex justify-between items-center">
-                    <button className="text-sm font-semibold text-gray-600 hover:text-primary transition-colors" onClick={(e) => { e.stopPropagation(); navigate(`/dashboard/supplier/${sp.id}`); }}>View Profile</button>
-                    <button 
-                      className={`px-5 py-2 rounded-lg text-sm font-bold shadow-md transition-all flex items-center ${isApproved ? 'bg-primary hover:bg-primary-dark text-white hover:shadow-lg hover:-translate-y-0.5' : 'bg-amber-500 hover:bg-amber-600 text-white hover:shadow-lg hover:-translate-y-0.5'}`} 
-                      onClick={(e) => { 
-                        e.stopPropagation(); 
-                        if (isApproved) {
-                          setEnquiryMode(sp.id); 
-                        } else {
-                          navigate('/dashboard/buyer-registration');
-                        }
-                      }}
-                      title={!isApproved ? "Register to send enquiries" : ""}
-                    >
-                      {isApproved ? 'Send Enquiry' : 'Register to Enquire'} <ArrowRight className="w-4 h-4 ml-1.5" />
-                    </button>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <h3 className="font-extrabold text-slate-900 text-sm leading-tight truncate">{sp.name}</h3>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <Star className="w-3.5 h-3.5 text-amber-400 fill-current shrink-0" />
+                              <span className="text-xs font-bold text-slate-700">{sp.rating}</span>
+                              <span className="text-[11px] text-slate-400">({sp.orders} Orders)</span>
+                              <span className="text-[9px] font-extrabold bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-full uppercase tracking-wider">{sellerType}</span>
+                            </div>
+                          </div>
+                          <input
+                            type="checkbox"
+                            checked={selectedSuppliers.has(sp.id)}
+                            readOnly
+                            className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 shrink-0 mt-0.5"
+                          />
+                        </div>
+                        {/* Availability status pill */}
+                        <div className="mt-2">{getStatusBadge(sp)}</div>
+                      </div>
+                    </div>
+
+                    {/* Divider */}
+                    <div className="mx-4 border-t border-slate-100" />
+
+                    {/* Produce Attributes Grid */}
+                    <div className="p-4 grid grid-cols-2 gap-x-4 gap-y-3 text-xs">
+                      <div>
+                        <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-0.5">Crop Variety</p>
+                        <p className="font-bold text-slate-800">{variety}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-0.5">Grade Classification</p>
+                        <p className="font-bold text-emerald-700">{grade}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-0.5">Certification Category</p>
+                        <p className="font-bold text-slate-800">{certCategory}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-0.5">Packaging</p>
+                        <p className="font-bold text-slate-800">{packaging}</p>
+                      </div>
+                      <div className="col-span-2">
+                        <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-0.5">Available Stock</p>
+                        <p className="font-black text-base text-emerald-700 font-mono">
+                          {(sp.hasPhase2 ? sp.actualYield : sp.estimatedYield).toFixed(1)} MT
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Certification Tags */}
+                    <div className="px-4 pb-3 flex flex-wrap gap-1.5">
+                      <span className="inline-flex items-center gap-1 text-[10px] font-extrabold bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-full">
+                        <ShieldCheck className="w-2.5 h-2.5" /> SC Verified
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-[10px] font-extrabold bg-blue-50 text-blue-800 border border-blue-200 px-2 py-0.5 rounded-full">
+                        <CheckCircle2 className="w-2.5 h-2.5" /> TC Issued
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-[10px] font-extrabold bg-purple-50 text-purple-800 border border-purple-200 px-2 py-0.5 rounded-full">
+                        <CheckCircle2 className="w-2.5 h-2.5" /> NABL Tested
+                      </span>
+                    </div>
+
+                    {/* Lab Quality Parameters */}
+                    <div className="mx-4 mb-3 bg-slate-50 border border-slate-200 rounded-xl p-3">
+                      <p className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Lab Tested Quality Parameters
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {labTests.map(param => (
+                          <span key={param} className="text-[10px] font-bold text-slate-700 bg-white border border-slate-200 px-2 py-0.5 rounded-lg shadow-xs">
+                            {param}
+                          </span>
+                        ))}
+                      </div>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); toast.success(`Downloading NABL Lab Test Report for ${sp.name}...`); }}
+                        className="mt-2 text-[10px] font-extrabold text-emerald-700 hover:text-emerald-800 underline flex items-center gap-1"
+                      >
+                        <Info className="w-3 h-3" /> View Full Lab Report
+                      </button>
+                    </div>
+
+                    {/* Action Footer */}
+                    <div className="px-4 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between mt-auto">
+                      <button
+                        className="text-xs font-bold text-slate-500 hover:text-emerald-700 transition-colors"
+                        onClick={(e) => { e.stopPropagation(); navigate(`/dashboard/supplier/${sp.id}`); }}
+                      >
+                        View Full Profile →
+                      </button>
+                      <button
+                        className={clsx(
+                          'px-4 py-2 rounded-xl text-xs font-extrabold shadow-xs transition-all flex items-center gap-1.5',
+                          isApproved
+                            ? 'bg-emerald-700 hover:bg-emerald-800 text-white'
+                            : 'bg-amber-500 hover:bg-amber-600 text-white'
+                        )}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (isApproved) setEnquiryMode(sp.id);
+                          else navigate('/dashboard/buyer-registration');
+                        }}
+                      >
+                        {isApproved ? 'Send Enquiry' : 'Register to Enquire'}
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">

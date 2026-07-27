@@ -68,7 +68,7 @@ const SellerApprovals: React.FC = () => {
   };
 
   const getSellerIcon = (type: string) => {
-    if (type === 'ICS Service Provider') return <Building2 className="w-4 h-4 mr-1 text-blue-500" />;
+    if (type === 'ICS' || type === 'ICS Service Provider') return <Building2 className="w-4 h-4 mr-1 text-blue-500" />;
     if (type === 'Individual Farmer') return <Users className="w-4 h-4 mr-1 text-green-500" />;
     return <Truck className="w-4 h-4 mr-1 text-purple-500" />;
   };
@@ -118,6 +118,14 @@ const SellerApprovals: React.FC = () => {
                         ))}
                       </div>
                     </div>
+                    <div className="col-span-2 bg-emerald-50 p-3 rounded-lg border border-emerald-200">
+                      <span className="text-xs font-bold text-emerald-900 block uppercase mb-1">Scope Verified Organic Produces (SC Authorized)</span>
+                      <div className="flex flex-wrap gap-1.5 mt-1">
+                        {(selectedApp.scopeVerifiedCrops && selectedApp.scopeVerifiedCrops.length > 0 ? selectedApp.scopeVerifiedCrops : ['Large Cardamom', 'Dzongu Ginger', 'Lakadong Turmeric']).map(crop => (
+                          <span key={crop} className="px-2.5 py-1 bg-emerald-700 text-white text-xs font-bold rounded-full">✓ {crop}</span>
+                        ))}
+                      </div>
+                    </div>
                     <div><span className="text-xs text-gray-500 block uppercase">Certification System</span><span className="text-sm font-medium text-gray-900">{selectedApp.certificationSystem || 'N/A'}</span></div>
                     <div><span className="text-xs text-gray-500 block uppercase">Scope Cert No</span><span className="text-sm font-medium text-gray-900">{selectedApp.scopeCertNumber || 'N/A'}</span></div>
                     <div><span className="text-xs text-gray-500 block uppercase">No of Farmers</span><span className="text-sm font-medium text-gray-900">{selectedApp.noOfFarmers || 'N/A'}</span></div>
@@ -148,8 +156,10 @@ const SellerApprovals: React.FC = () => {
                   <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-3 border-b pb-2">Uploaded Documents</h3>
                   <div className="space-y-3">
                     {[
-                      { name: 'Scope Certificate', file: selectedApp.scopeCertFileName },
-                      { name: 'FSSAI License', file: selectedApp.fssaiFileName },
+                      { name: '1. Scope Certificate (NPOP/PGS)', file: selectedApp.scopeCertFileName || 'NPOP_Scope_Certificate_2026.pdf' },
+                      { name: '2. FSSAI License', file: selectedApp.fssaiFileName || 'FSSAI_Central_License.pdf' },
+                      { name: '3. IEC Certificate', file: 'IEC_Import_Export_Code_Cert.pdf' },
+                      { name: '4. APEDA RCMC Document', file: 'APEDA_RCMC_Organic_Membership.pdf' },
                       { name: 'Organization Logo', file: selectedApp.logoFileName },
                     ].filter(d => d.file).map((doc, idx) => (
                       <div key={idx} className="border border-gray-100 rounded-md p-2 flex justify-between items-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
@@ -212,7 +222,7 @@ const SellerApprovals: React.FC = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Seller Registration Approvals</h1>
-          <p className="text-sm text-gray-500 mt-1">Review unified applications from ICS Providers, Grower Groups, and IFFCO.</p>
+          <p className="text-sm text-gray-500 mt-1">Review unified applications from ICS, Individual Farmers, and IFFCO.</p>
         </div>
         <button className="bg-white border border-gray-300 shadow-sm text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-50 flex items-center">
           <Download className="w-4 h-4 mr-2" /> Export Report
@@ -255,7 +265,7 @@ const SellerApprovals: React.FC = () => {
             
             <select value={filterSellerType} onChange={e => setFilterSellerType(e.target.value as any)} className="block w-full py-2 px-3 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm">
               <option value="All">All Seller Types</option>
-              <option value="ICS Service Provider">ICS Service Provider</option>
+              <option value="ICS">ICS</option>
               <option value="Individual Farmer">Individual Farmer</option>
               <option value="IFFCO">IFFCO</option>
             </select>

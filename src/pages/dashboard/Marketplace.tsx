@@ -1,8 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useYieldSurvey } from '../../context/YieldSurveyContext';
-import { Search, MapPin, Tag, ShoppingCart, Leaf, Clock, ArrowRight, CheckCircle2, ArrowLeft } from 'lucide-react';
-import clsx from 'clsx';
+import { useProductListing } from '../../context/ProductListingContext';
+import { Search, ShoppingCart, Leaf, ArrowRight, ShieldCheck, Users, ChevronRight } from 'lucide-react';
 import cardamomImg from '../../assets/cardamom.jpg';
 import gingerImg from '../../assets/ginger.jpg';
 import turmericImg from '../../assets/turmeric.jpg';
@@ -12,131 +11,248 @@ import dalleKhursaniImg from '../../assets/dallekhursani.png';
 
 const Marketplace: React.FC = () => {
   const navigate = useNavigate();
-  const { surveys } = useYieldSurvey();
+  const { listings } = useProductListing();
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Aggregate surveys by crop to display unique products
-  const products = useMemo(() => {
-    const agg: Record<string, any> = {};
-    surveys.filter(s => s.status === 'Approved').forEach(s => {
-      if (!agg[s.crop]) {
-        agg[s.crop] = {
-          name: s.crop,
-          estimatedYield: 0,
-          actualYield: 0,
-          hasPhase1: false,
-          hasPhase2: false,
-          districts: new Set(),
-          spCount: new Set()
+  // Filter approved/active listings only
+  const approvedListings = useMemo(() => {
+    return listings.filter(l =>
+      ['PRE_BOOKING_OPEN', 'READY_STOCK', 'PARTIALLY_RESERVED'].includes(l.listingStatus)
+    );
+  }, [listings]);
+
+  // Group by commodity — each unique commodity becomes one product card
+  const productGroups = useMemo(() => {
+    const groups: Record<string, {
+      commodity: string;
+      sellerCount: number;
+      totalStock: number;
+      uom: string;
+      hasPreBooking: boolean;
+      hasReadyStock: boolean;
+      sellerTypes: Set<string>;
+    }> = {};
+
+    approvedListings.forEach(l => {
+      if (!groups[l.commodity]) {
+        groups[l.commodity] = {
+          commodity: l.commodity,
+          sellerCount: 0,
+          totalStock: 0,
+          uom: l.unitOfMeasure,
+          hasPreBooking: false,
+          hasReadyStock: false,
+          sellerTypes: new Set()
         };
       }
-      if (s.phase.includes('1')) {
-        agg[s.crop].estimatedYield += s.totalYield;
-        agg[s.crop].hasPhase1 = true;
-      }
-      if (s.phase.includes('2')) {
-        agg[s.crop].actualYield += s.totalYield;
-        agg[s.crop].hasPhase2 = true;
-      }
-      // Assuming mock data districts based on SP names for simplicity
-      agg[s.crop].districts.add(s.growerGroups[0].split(' ')[0]);
-      agg[s.crop].spCount.add(s.serviceProviderName);
+      groups[l.commodity].sellerCount += 1;
+      groups[l.commodity].totalStock += l.availableQuantity;
+      if (l.listingType === 'PRE_BOOKING') groups[l.commodity].hasPreBooking = true;
+      if (l.listingType === 'READY_STOCK') groups[l.commodity].hasReadyStock = true;
+      groups[l.commodity].sellerTypes.add(l.sellerType || 'ICS');
     });
-    return Object.values(agg).map(p => ({
-      ...p,
-      districts: Array.from(p.districts),
-      spCount: p.spCount.size
-    }));
-  }, [surveys]);
+
+    return Object.values(groups);
+  }, [approvedListings]);
+
+  // Static fallback products (always shown even when context is empty)
+  const staticProducts = [
+    { commodity: 'Large Cardamom', category: 'Spice', origin: 'Sikkim' },
+    { commodity: 'Dzongu Ginger', category: 'Spice', origin: 'North Sikkim' },
+    { commodity: 'Lakadong Turmeric', category: 'Spice', origin: 'Sikkim' },
+    { commodity: 'Buckwheat', category: 'Grain', origin: 'Sikkim' },
+    { commodity: 'Sikkim Mandarin', category: 'Fruit', origin: 'Sikkim' },
+    { commodity: 'Dalle Khursani', category: 'Chilli', origin: 'Sikkim' },
+  ];
 
   const getCropImage = (name: string) => {
     switch (name.toLowerCase()) {
       case 'large cardamom': return cardamomImg;
+      case 'dzongu ginger':
       case 'ginger': return gingerImg;
+      case 'lakadong turmeric':
       case 'turmeric': return turmericImg;
       case 'buckwheat': return buckwheatImg;
+      case 'sikkim mandarin':
       case 'oranges': return orangesImg;
+      case 'dalle khursani':
       case 'local dalle khursani (dried)': return dalleKhursaniImg;
       default: return cardamomImg;
     }
   };
 
+  // Merge context-derived groups with static fallback list
+  const allProducts = useMemo(() => {
+    const contextNames = new Set(productGroups.map(p => p.commodity.toLowerCase()));
+    const fallbacks = staticProducts
+      .filter(s => !contextNames.has(s.commodity.toLowerCase()))
+      .map(s => ({
+        commodity: s.commodity,
+        sellerCount: 0,
+        totalStock: 0,
+        uom: 'MT',
+        hasPreBooking: false,
+        hasReadyStock: false,
+        sellerTypes: new Set<string>()
+      }));
+    return [...productGroups, ...fallbacks];
+  }, [productGroups]);
+
+  const filtered = useMemo(() => {
+    if (!searchQuery.trim()) return allProducts;
+    const q = searchQuery.toLowerCase();
+    return allProducts.filter(p => p.commodity.toLowerCase().includes(q));
+  }, [allProducts, searchQuery]);
+
+  const getSellerTypeLabel = (types: Set<string>) => {
+    const arr = Array.from(types);
+    if (arr.length === 0) return 'ICS • Individual Farmers • IFFCO';
+    return arr.join(' • ');
+  };
+
   return (
-    <div className="max-w-7xl mx-auto py-6">
-      <div className="flex flex-col mb-8 gap-1.5">
-        <div className="flex items-center">
-          <button 
-            onClick={() => navigate('/dashboard')} 
-            className="mr-3 text-gray-400 hover:text-gray-800 transition-colors"
-            title="Go Back"
-          >
-            <ArrowLeft className="w-6 h-6" />
-          </button>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center">
-            <ShoppingCart className="w-7 h-7 sm:w-8 sm:h-8 mr-3 text-primary" /> 
-            Premium Organic Produce Marketplace
-          </h1>
+    <div className="max-w-7xl mx-auto py-4 sm:py-6 space-y-6">
+
+      {/* Header */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-2xl shrink-0">
+              <ShoppingCart className="w-6 h-6" />
+            </div>
+            <div>
+              <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+                Sikkim Organic B2B Produce Marketplace
+              </h1>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Direct B2B sourcing from SC-verified ICS, Grower Groups &amp; IFFCO. Select a product to compare all available suppliers.
+              </p>
+            </div>
+          </div>
+          {/* Search */}
+          <div className="relative w-full sm:w-72 shrink-0">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-4 py-2.5 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 bg-slate-50"
+            />
+          </div>
         </div>
-        <p className="text-gray-500 text-sm max-w-2xl sm:ml-10">Source fresh organic crops directly from verified Organic Certified Sellers. Secure your seasonal supply today.</p>
+
+        {/* Trust badges */}
+        <div className="mt-4 pt-4 border-t border-slate-100 flex flex-wrap gap-2">
+          {['100% NPOP Scope Certificate Verified', 'GI-Tagged Produce', 'APEDA RCMC Certified Suppliers', 'Lab-Tested Quality Assured'].map(badge => (
+            <span key={badge} className="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
+              <ShieldCheck className="w-3 h-3" /> {badge}
+            </span>
+          ))}
+        </div>
       </div>
 
-      {products.length === 0 ? (
-        <div className="text-center py-20 bg-white rounded-xl border border-gray-200">
-          <Leaf className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900">No Approved Products Available</h3>
-          <p className="text-gray-500 mt-1">Check back later when SOFDA approves new yield surveys.</p>
+      {/* Section label */}
+      <div className="flex items-center justify-between px-1">
+        <p className="text-xs font-extrabold uppercase tracking-widest text-slate-500">
+          {filtered.length} Certified Organic Products
+        </p>
+        <p className="text-[11px] text-slate-400">Click a product to view all available suppliers</p>
+      </div>
+
+      {/* Product Grid — one card per commodity */}
+      {filtered.length === 0 ? (
+        <div className="text-center py-20 bg-white rounded-2xl border border-slate-200">
+          <Leaf className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+          <h3 className="text-lg font-bold text-slate-900">No products found</h3>
+          <p className="text-slate-500 text-sm mt-1">Try adjusting your search query.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-5">
-          {products.map((p, idx) => (
-            <div key={idx} className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden flex flex-col group cursor-pointer" onClick={() => navigate(`/dashboard/marketplace/${encodeURIComponent(p.name)}`)}>
-              <div className="h-40 bg-gray-200 relative overflow-hidden">
-                <img 
-                  src={getCropImage(p.name)} 
-                  alt={p.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
-                <div className="absolute top-3 left-3 flex flex-col gap-1.5">
-                  {p.hasPhase2 ? (
-                    <span className="bg-green-500 text-white text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded shadow-md flex items-center">
-                      <CheckCircle2 className="w-3 h-3 mr-1" /> Open for Sale
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          {filtered.map((p) => {
+            const hasListings = p.sellerCount > 0;
+            return (
+              <div
+                key={p.commodity}
+                onClick={() => navigate(`/dashboard/marketplace/${encodeURIComponent(p.commodity)}`)}
+                className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-200 overflow-hidden flex flex-col group cursor-pointer hover:-translate-y-0.5"
+              >
+                {/* Product Image */}
+                <div className="h-44 sm:h-48 bg-slate-200 relative overflow-hidden">
+                  <img
+                    src={getCropImage(p.commodity)}
+                    alt={p.commodity}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/10 to-transparent" />
+
+                  {/* SC Verified badge */}
+                  <div className="absolute top-3 left-3">
+                    <span className="bg-slate-900/80 backdrop-blur-xs text-white text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 border border-slate-700/60">
+                      <ShieldCheck className="w-3 h-3 text-emerald-400" /> SC Verified
                     </span>
-                  ) : (
-                    <span className="bg-blue-500 text-white text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded shadow-md flex items-center">
-                      <Clock className="w-3 h-3 mr-1" /> Pre-Booking
-                    </span>
+                  </div>
+
+                  {/* Live supplier pill */}
+                  {hasListings && (
+                    <div className="absolute top-3 right-3">
+                      <span className="bg-emerald-600 text-white text-[10px] font-extrabold px-2 py-1 rounded-full">
+                        {p.sellerCount} {p.sellerCount === 1 ? 'Supplier' : 'Suppliers'} Live
+                      </span>
+                    </div>
                   )}
-                  <span className="bg-white/90 backdrop-blur-sm text-gray-800 text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded shadow-sm flex items-center w-fit">
-                    <Tag className="w-2.5 h-2.5 mr-1" /> GI Certified
-                  </span>
+
+                  {/* Commodity name on image */}
+                  <h3 className="absolute bottom-3 left-3 right-3 text-lg font-extrabold text-white drop-shadow-md leading-tight">
+                    {p.commodity}
+                  </h3>
                 </div>
-                <h3 className="absolute bottom-3 left-3 right-3 text-lg font-bold text-white drop-shadow-md leading-tight">{p.name}</h3>
-              </div>
-              
-              <div className="p-4 flex-1 flex flex-col justify-between">
-                <div className="space-y-2.5 mb-5">
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-gray-500 flex items-center"><MapPin className="w-3.5 h-3.5 mr-1"/> Regions</span>
-                    <span className="font-medium text-gray-900 text-right truncate max-w-[120px]" title={p.districts.join(', ')}>{p.districts.join(', ')}</span>
+
+                {/* Card Body — clean, no seller-specific data */}
+                <div className="p-4 flex-1 flex flex-col justify-between gap-3">
+                  <div className="space-y-2">
+                    {/* Certification */}
+                    <div className="flex items-center gap-1.5 text-[11px] text-emerald-700 font-bold">
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      NPOP / PGS Organic Certified
+                    </div>
+
+                    {/* Availability status pills */}
+                    <div className="flex flex-wrap gap-1.5">
+                      {p.hasPreBooking && (
+                        <span className="text-[10px] font-extrabold bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full">
+                          Pre-Booking Available
+                        </span>
+                      )}
+                      {p.hasReadyStock && (
+                        <span className="text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-full">
+                          Ready Stock Available
+                        </span>
+                      )}
+                      {!hasListings && (
+                        <span className="text-[10px] font-extrabold bg-slate-100 text-slate-500 border border-slate-200 px-2 py-0.5 rounded-full">
+                          Enquiries Open
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Who sells this */}
+                    <div className="flex items-start gap-1.5 text-[11px] text-slate-500 pt-1">
+                      <Users className="w-3.5 h-3.5 shrink-0 mt-0.5 text-slate-400" />
+                      <span>
+                        Available from <span className="font-bold text-slate-700">ICS Providers, Individual Farmers &amp; IFFCO</span>
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-gray-500">Available Qty</span>
-                    <span className={clsx("font-bold text-sm", p.hasPhase2 ? "text-green-600" : "text-blue-600")}>
-                      {(p.hasPhase2 ? p.actualYield : p.estimatedYield).toFixed(1)} MT
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-gray-500">Suppliers</span>
-                    <span className="font-medium text-gray-900 bg-gray-100 px-2 py-0.5 rounded text-[10px]">{p.spCount} Providers</span>
-                  </div>
+
+                  {/* CTA */}
+                  <button className="w-full bg-slate-900 group-hover:bg-emerald-700 text-white font-extrabold py-2.5 px-4 rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5">
+                    View All Suppliers <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                  </button>
                 </div>
-                
-                <button className="w-full bg-gray-50 hover:bg-primary hover:text-white text-primary border border-primary/20 hover:border-transparent font-medium py-2 px-3 rounded-lg text-sm transition-colors flex items-center justify-center group-hover:shadow-md">
-                  View <ArrowRight className="w-3.5 h-3.5 ml-1.5 group-hover:translate-x-1 transition-transform" />
-                </button>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

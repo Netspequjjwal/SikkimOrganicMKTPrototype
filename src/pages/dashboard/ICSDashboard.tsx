@@ -1,6 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ClipboardCheck, MapPin, AlertCircle, Calendar, CheckCircle2, Clock, XCircle, ArrowRight, FileText, Search, Pin, ChevronRight, MessageSquare, FileSignature, CreditCard, X, Package } from 'lucide-react';
+import { 
+  ClipboardCheck, MapPin, AlertCircle, Calendar, CheckCircle2, Clock, XCircle, 
+  ArrowRight, FileText, Search, Pin, ChevronRight, MessageSquare, FileSignature, 
+  CreditCard, X, Package, ShieldCheck, Activity, Layers, Filter, Lock, Unlock, RefreshCw
+} from 'lucide-react';
 import { useSellerRegistration } from '../../context/SellerRegistrationContext';
 import { useContract } from '../../context/ContractContext';
 import { useNegotiation } from '../../context/NegotiationContext';
@@ -9,19 +13,26 @@ import { useActionCenter } from '../../context/ActionCenterContext';
 
 const ICSDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { applications } = useSellerRegistration();
+  const { applications, resetToUnregistered, setDemoStatus } = useSellerRegistration();
   const { contracts } = useContract();
   const { enquiries } = useNegotiation();
   const { orders } = useOrder();
   const { recentActions } = useActionCenter();
   
-  // For the prototype, we display the progress of the most recently submitted application
+  // Progress of the most recently submitted seller application
   const myApp = applications[0];
+
+  // STEP 1: If seller is NOT registered (no application submitted yet), redirect to seller-registration page
+  useEffect(() => {
+    if (applications.length === 0) {
+      navigate('/dashboard/seller-registration');
+    }
+  }, [applications, navigate]);
 
   // Timeline Tracker state
   const [trackerSearch, setTrackerSearch] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [trackedItem, setTrackedItem] = useState<{type: 'enquiry' | 'contract' | 'not_found', data: any} | null>(null);
+  const [trackedItem, setTrackedItem] = useState<{ type: 'enquiry' | 'contract' | 'not_found', data: any } | null>(null);
 
   const allSuggestions = [
     ...contracts.filter(c => c.contractRef).map(c => ({ id: c.contractRef as string, type: 'Contract', product: c.product })),
@@ -50,283 +61,419 @@ const ICSDashboard: React.FC = () => {
     ...actionableOrders.map(o => ({ id: o.id, refId: o.contractRef || o.id, title: `Order Action Required - ${o.status}`, type: 'order', actionUrl: `/dashboard/orders/${o.id}` }))
   ];
 
-  // We removed the derived recentActivities because we now use recentActions from ActionCenterContext
-
   const handleTrackerSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!trackerSearch.trim()) {
       setTrackedItem(null);
       return;
     }
-    
+
     const query = trackerSearch.trim().toUpperCase();
-    
-    // Check contracts first
+
     const contract = contracts.find(c => c.contractRef === query || c.enquiryId === query);
     if (contract) {
       setTrackedItem({ type: 'contract', data: contract });
       return;
     }
-    
-    // Check enquiries
+
     const enquiry = enquiries.find(e => e.id === query);
     if (enquiry) {
-      // Is there a contract for this enquiry?
       const relatedContract = contracts.find(c => c.enquiryId === enquiry.id);
       if (relatedContract) {
-        setTrackedItem({ type: 'contract', data: relatedContract }); // Elevate to contract view if exists
+        setTrackedItem({ type: 'contract', data: relatedContract });
       } else {
         setTrackedItem({ type: 'enquiry', data: enquiry });
       }
       return;
     }
-    
+
     setTrackedItem({ type: 'not_found', data: null });
   };
 
-  const renderTimeline = () => {
+  const renderCompactTimeline = () => {
     if (!trackedItem || trackedItem.type === 'not_found') return null;
-    
+
     const { type, data } = trackedItem;
-    
-    // Base steps for any transaction (Seller Perspective)
+
     const steps = [
-      { id: 'enquiry', title: 'Enquiry Received', description: 'Buyer sent initial requirements.', status: 'completed', icon: MessageSquare },
-      { id: 'quote', title: 'Quotation Submitted', description: 'You provided pricing details.', status: (type === 'contract' || (type === 'enquiry' && data.messages.some((m: any) => m.isQuotation))) ? 'completed' : 'pending', icon: FileText },
-      { id: 'draft', title: 'Contract Prepared', description: 'Legal document drafted and payment configured.', status: type === 'contract' ? 'completed' : 'pending', icon: FileSignature },
-      { id: 'execute', title: 'Legally Executed', description: 'Both parties digitally signed.', status: type === 'contract' && !['Draft', 'Pending Buyer Review'].includes(data.status) ? 'completed' : 'pending', icon: CheckCircle2 },
-      { id: 'payment', title: 'Payment Processing', description: 'Funds received via gateway.', status: type === 'contract' && ['Partially Paid', 'Fully Paid', 'Completed'].includes(data.status) ? (data.status === 'Fully Paid' || data.status === 'Completed' ? 'completed' : 'current') : 'pending', icon: CreditCard },
-      { id: 'logistics', title: 'Logistics & Fulfillment', description: 'Shipment dispatched and verified.', status: type === 'contract' && data.status === 'Completed' ? 'completed' : 'pending', icon: MapPin },
+      { id: 'enquiry', title: 'Enquiry Received', description: 'Buyer sent requirements.', status: 'completed', icon: MessageSquare },
+      { id: 'quote', title: 'Quotation Submitted', description: 'Pricing details provided.', status: (type === 'contract' || (type === 'enquiry' && data.messages.some((m: any) => m.isQuotation))) ? 'completed' : 'pending', icon: FileText },
+      { id: 'draft', title: 'Contract Prepared', description: 'Drafted & payment set.', status: type === 'contract' ? 'completed' : 'pending', icon: FileSignature },
+      { id: 'execute', title: 'Legally Executed', description: 'Signed by both parties.', status: type === 'contract' && !['Draft', 'Pending Buyer Review'].includes(data.status) ? 'completed' : 'pending', icon: CheckCircle2 },
+      { id: 'payment', title: 'Payment Processing', description: 'Funds via gateway.', status: type === 'contract' && ['Partially Paid', 'Fully Paid', 'Completed'].includes(data.status) ? (data.status === 'Fully Paid' || data.status === 'Completed' ? 'completed' : 'current') : 'pending', icon: CreditCard },
+      { id: 'logistics', title: 'Fulfillment', description: 'Dispatched & verified.', status: type === 'contract' && data.status === 'Completed' ? 'completed' : 'pending', icon: MapPin },
     ];
 
     const currentIndex = steps.findIndex(s => s.status === 'pending' || s.status === 'current');
 
     return (
-      <div className="mt-6 border-t border-gray-100 pt-6">
-        <h3 className="font-bold text-gray-900 mb-6 flex items-center">
-          Timeline for {type === 'contract' ? (data.contractRef || 'Pending Execution') : data.id}
-          <span className="ml-3 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-800 border border-gray-200">Current Status: {data.status}</span>
-        </h3>
-        
-        <div className="relative">
-          <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-200"></div>
-          
-          <div className="space-y-8 relative">
-            {steps.map((step, idx) => {
-              const isCompleted = step.status === 'completed';
-              const isCurrent = step.status === 'current' || (currentIndex === idx && step.status === 'pending');
-              const Icon = step.icon;
-              
-              return (
-                <div key={step.id} className="flex items-start">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 z-10 
-                    ${isCompleted ? 'bg-green-100 text-green-600 border-2 border-white ring-4 ring-green-50' : 
-                      isCurrent ? 'bg-primary/10 text-primary border-2 border-white ring-4 ring-primary/20' : 
-                      'bg-gray-100 text-gray-400 border-2 border-white'}`}>
-                    <Icon className="w-5 h-5" />
-                  </div>
-                  <div className="ml-4 mt-1.5">
-                    <h4 className={`text-sm font-bold ${isCompleted ? 'text-gray-900' : isCurrent ? 'text-primary' : 'text-gray-500'}`}>{step.title}</h4>
-                    <p className="text-xs text-gray-500 mt-1">{step.description}</p>
-                  </div>
+      <div className="mt-4 border-t border-slate-200/80 pt-4 animate-fade-in">
+        <div className="flex items-center justify-between mb-3">
+          <span className="font-mono text-xs font-bold text-slate-800">
+            {type === 'contract' ? (data.contractRef || 'Pending Ref') : data.id}
+          </span>
+          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-700">
+            {data.status}
+          </span>
+        </div>
+
+        <div className="space-y-3 relative pl-3 border-l-2 border-slate-200 ml-2">
+          {steps.map((step, idx) => {
+            const isCompleted = step.status === 'completed';
+            const isCurrent = step.status === 'current' || (currentIndex === idx && step.status === 'pending');
+            const Icon = step.icon;
+
+            return (
+              <div key={step.id} className="relative flex items-center">
+                <div className={`absolute -left-[19px] w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border-2 border-white
+                  ${isCompleted ? 'bg-emerald-500 text-white' :
+                    isCurrent ? 'bg-amber-500 text-white ring-2 ring-amber-200' :
+                      'bg-slate-200 text-slate-400'}`}>
+                  {isCompleted ? '✓' : idx + 1}
                 </div>
-              );
-            })}
-          </div>
+                <div className="ml-3">
+                  <p className={`text-xs font-bold ${isCompleted ? 'text-slate-900' : isCurrent ? 'text-amber-700' : 'text-slate-400'}`}>
+                    {step.title}
+                  </p>
+                  <p className="text-[11px] text-slate-500">{step.description}</p>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     );
   };
 
+  const isSellerApproved = myApp?.status === 'Approved';
+
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      
-      {/* Top Header */}
-      <div className="flex flex-col bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-        <h1 className="text-2xl font-bold text-gray-900">Service Provider Dashboard</h1>
-        <p className="text-sm text-gray-500 mt-1">Manage your active negotiations, contracts, and payments.</p>
+    <div className="max-w-7xl mx-auto space-y-6 pb-12">
+
+      {/* DEMO WORKFLOW SIMULATOR TOOLBAR */}
+      <div className="bg-slate-900 text-white px-4 py-2.5 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs shadow-md border border-slate-800">
+        <div className="flex items-center space-x-2 font-mono">
+          <RefreshCw className="w-4 h-4 text-emerald-400 animate-spin-slow" />
+          <span className="font-bold text-slate-300">Seller Workflow Simulator:</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={() => resetToUnregistered()}
+            className="px-2.5 py-1 bg-red-600/80 hover:bg-red-600 rounded-lg text-white font-semibold transition-colors"
+            title="Simulate first-time seller (redirects to /dashboard/seller-registration)"
+          >
+            1. Unregistered (Redirect)
+          </button>
+          <button 
+            onClick={() => setDemoStatus('Pending')}
+            className={`px-2.5 py-1 rounded-lg font-semibold transition-colors ${myApp?.status === 'Pending' ? 'bg-amber-500 text-white ring-2 ring-amber-300' : 'bg-slate-800 text-amber-300 hover:bg-slate-700'}`}
+          >
+            2. Pending Approval
+          </button>
+          <button 
+            onClick={() => setDemoStatus('Approved')}
+            className={`px-2.5 py-1 rounded-lg font-semibold transition-colors ${myApp?.status === 'Approved' ? 'bg-emerald-600 text-white ring-2 ring-emerald-300' : 'bg-slate-800 text-emerald-300 hover:bg-slate-700'}`}
+          >
+            3. Department Approved (Active)
+          </button>
+        </div>
       </div>
 
-      {/* Organization Registration Status Tracker */}
+      {/* Top Header Banner */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 gap-4">
+        <div>
+          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Sellers Dashboard</h1>
+          <p className="text-sm text-slate-500 mt-0.5">Manage live buyer RFQs, digital contracts, and fulfillment pipelines.</p>
+        </div>
+
+        {/* Quick Stats Pills */}
+        <div className="flex items-center gap-3">
+          <div className="px-3.5 py-1.5 bg-amber-50 border border-amber-200/80 rounded-xl text-center">
+            <span className="text-[10px] uppercase font-bold text-amber-700 block">Pending Actions</span>
+            <span className="text-base font-extrabold text-amber-900">{allActionableItems.length}</span>
+          </div>
+          <div className="px-3.5 py-1.5 bg-emerald-50 border border-emerald-200/80 rounded-xl text-center">
+            <span className="text-[10px] uppercase font-bold text-emerald-700 block">Active Contracts</span>
+            <span className="text-base font-extrabold text-emerald-900">{activeContracts.length}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* SELLER REGISTRATION STATUS & APPROVAL PRIVILEGES BANNER */}
       {myApp && (
-        <div className={`border rounded-xl p-4 flex items-center justify-between mb-6 shadow-sm ${myApp.status === 'Approved' ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'}`}>
-          <div className="flex items-center">
-            {myApp.status === 'Approved' ? <CheckCircle2 className="w-5 h-5 text-green-600 mr-3" /> : <Clock className="w-5 h-5 text-yellow-600 mr-3" />}
-            <div>
-              <p className="text-sm font-bold text-gray-900">Organization Registration: {myApp.status}</p>
-              <p className="text-xs text-gray-600">Ref ID: {myApp.id} {myApp.remarks && `— ${myApp.remarks}`}</p>
+        <div className={`rounded-2xl p-5 border shadow-sm transition-all ${isSellerApproved ? 'bg-emerald-50/90 border-emerald-300' : 'bg-amber-50/90 border-amber-300'}`}>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            
+            <div className="flex items-start space-x-3.5">
+              {isSellerApproved ? (
+                <div className="p-2.5 bg-emerald-600 text-white rounded-xl shadow-xs">
+                  <ShieldCheck className="w-6 h-6" />
+                </div>
+              ) : (
+                <div className="p-2.5 bg-amber-500 text-white rounded-xl shadow-xs">
+                  <Clock className="w-6 h-6" />
+                </div>
+              )}
+              
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-extrabold text-slate-900">
+                    Organization Registration: {myApp.status}
+                  </h3>
+                  <span className="font-mono text-xs font-bold px-2 py-0.5 bg-white rounded-md border border-slate-200 text-slate-700">
+                    {myApp.id}
+                  </span>
+                </div>
+                
+                <p className="text-xs text-slate-600 mt-1 max-w-3xl leading-relaxed">
+                  {isSellerApproved ? (
+                    <span className="text-emerald-800 font-medium">
+                      ✓ Your Seller Organization is verified and approved by the Agriculture & Horticulture Department! Full selling privileges and product listing features are active.
+                    </span>
+                  ) : (
+                    <span className="text-amber-800 font-medium">
+                      ⏳ Your registration application is currently under review by the Agriculture & Horticulture Department. Upon department approval, your produce selling privileges will be fully activated.
+                    </span>
+                  )}
+                </p>
+
+                {/* Trust Badges on Approval */}
+                {isSellerApproved && myApp.trustBadges && myApp.trustBadges.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-2.5">
+                    {myApp.trustBadges.map((badge, idx) => (
+                      <span key={idx} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        <CheckCircle2 className="w-3 h-3 mr-1 text-emerald-600" />
+                        {badge}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
+
+            {/* Action CTA Button */}
+            <div className="shrink-0 flex items-center gap-2">
+              {!isSellerApproved ? (
+                <button 
+                  onClick={() => navigate('/dashboard/seller-approvals')}
+                  className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl shadow-sm transition-colors flex items-center gap-1.5"
+                >
+                  <Clock className="w-4 h-4" /> Review Approvals Desk
+                </button>
+              ) : (
+                <button 
+                  onClick={() => navigate('/dashboard/survey')}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-sm transition-colors flex items-center gap-1.5"
+                >
+                  <Unlock className="w-4 h-4" /> Publish Produces
+                </button>
+              )}
+            </div>
+
           </div>
         </div>
       )}
 
-      {/* Transaction Timeline Tracker */}
-      <div className="bg-white shadow-sm rounded-xl border border-gray-100">
-        <div className="px-6 py-5 border-b border-gray-200 bg-gray-50/50 rounded-t-xl">
-          <h3 className="text-lg leading-6 font-bold text-gray-900 flex items-center">
-            <Clock className="w-5 h-5 mr-2 text-blue-500" /> Transaction Timeline Tracker
-          </h3>
-          <p className="text-sm text-gray-500 mt-1">Enter an Enquiry ID or Contract ID to trace its full lifecycle.</p>
-        </div>
-        <div className="p-6">
-          <form onSubmit={handleTrackerSearch} className="flex gap-4 max-w-2xl">
-            <div className="relative flex-1">
-              <input 
-                type="text" 
-                placeholder="e.g. ENQ-2026-000458 or EC-2026-976665"
-                value={trackerSearch}
-                onChange={(e) => {
-                  setTrackerSearch(e.target.value);
-                  setShowSuggestions(true);
-                }}
-                onFocus={() => setShowSuggestions(true)}
-                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent uppercase"
-              />
-              <Search className="w-5 h-5 text-gray-400 absolute left-3 top-3.5" />
-              
-              {trackerSearch && (
-                <button 
-                  type="button"
-                  onClick={() => {
-                    setTrackerSearch('');
-                    setTrackedItem(null);
+      {/* 2-COLUMN HEATMAP DASHBOARD LAYOUT */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+        {/* LEFT COLUMN: Secondary & Reference Information (Cool Slate Tone) */}
+        <div className="lg:col-span-5 space-y-6">
+
+          {/* 1. Compact Transaction Timeline Tracker */}
+          <div className="bg-slate-50/80 rounded-2xl border border-slate-200/90 shadow-sm p-5 relative z-20">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-bold text-slate-900 flex items-center">
+                <Clock className="w-4 h-4 mr-2 text-indigo-600" /> Status Tracker
+              </h3>
+              <span className="text-[10px] text-slate-400 font-medium">Trace ID</span>
+            </div>
+
+            <form onSubmit={handleTrackerSearch} className="space-y-2">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="ENQ-2026-000458 or EC-2026-..."
+                  value={trackerSearch}
+                  onChange={(e) => {
+                    setTrackerSearch(e.target.value);
+                    setShowSuggestions(true);
                   }}
-                  className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              )}
-              
-              {/* Autocomplete Dropdown */}
-              {showSuggestions && filteredSuggestions.length > 0 && (
-                <ul className="absolute z-50 w-full bg-white mt-1 border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                  {filteredSuggestions.map((s, idx) => (
-                    <li 
-                      key={idx}
-                      onClick={() => {
-                        setTrackerSearch(s.id);
-                        setShowSuggestions(false);
-                      }}
-                      className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0 flex justify-between items-center group"
-                    >
-                      <span className="font-mono font-bold text-gray-900 group-hover:text-primary">{s.id}</span>
-                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">{s.type} - {s.product}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-            <button type="submit" className="bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-lg font-bold transition-colors">
-              Track Status
-            </button>
-          </form>
+                  onFocus={() => setShowSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                  className="w-full pl-9 pr-8 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary uppercase bg-white"
+                />
+                <Search className="w-4 h-4 text-slate-400 absolute left-2.5 top-2.5" />
 
-          {trackedItem && trackedItem.type === 'not_found' && (
-            <div className="mt-6 p-4 bg-red-50 text-red-700 rounded-lg border border-red-100 flex items-center">
-              <AlertCircle className="w-5 h-5 mr-2" /> No transaction found matching that ID. Please check and try again.
-            </div>
-          )}
+                {trackerSearch && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTrackerSearch('');
+                      setTrackedItem(null);
+                    }}
+                    className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
 
-          {renderTimeline()}
-        </div>
-      </div>
-
-      {/* Dynamic Action Center & Pinned Items Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Action Center (Recent Activity) */}
-        <div className="bg-white shadow-sm rounded-xl border border-gray-100 overflow-hidden flex flex-col">
-          <div className="px-6 py-5 border-b border-gray-200 bg-gray-50/50 flex justify-between items-center">
-            <h3 className="text-lg leading-6 font-bold text-gray-900 flex items-center">
-              <Clock className="w-5 h-5 mr-2 text-blue-500" /> Action Center (Recent Activity)
-            </h3>
-          </div>
-          <div className="p-6 flex-1 bg-white">
-            {recentActions.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-gray-500 py-8">
-                <CheckCircle2 className="w-12 h-12 text-gray-300 mb-3" />
-                <p>No recent activity in this session.</p>
+                {/* Autocomplete Dropdown */}
+                {showSuggestions && filteredSuggestions.length > 0 && (
+                  <ul className="absolute z-50 w-full bg-white mt-1 border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                    {filteredSuggestions.map((s, idx) => (
+                      <li
+                        key={idx}
+                        onClick={() => {
+                          setTrackerSearch(s.id);
+                          setShowSuggestions(false);
+                        }}
+                        className="px-3 py-2 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0 flex justify-between items-center text-xs"
+                      >
+                        <span className="font-mono font-bold text-slate-800">{s.id}</span>
+                        <span className="text-[10px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">{s.type}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
-            ) : (
-              <div className="space-y-4">
-                {recentActions.map((item, idx) => (
-                  <div key={item.id} className="flex items-center justify-between p-4 rounded-xl border border-gray-200 hover:border-primary/30 hover:shadow-md transition-all group bg-white cursor-pointer" onClick={() => navigate(item.actionUrl)}>
-                    <div className="flex items-center flex-1">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-4 
-                        ${item.iconType === 'enquiry' ? 'bg-blue-100 text-blue-600' : 
-                          item.iconType === 'contract' ? 'bg-teal-100 text-teal-600' : 
-                          item.iconType === 'payment' ? 'bg-red-100 text-red-600' : 
-                          item.iconType === 'order' ? 'bg-purple-100 text-purple-600' : 
-                          item.iconType === 'quotation' ? 'bg-yellow-100 text-yellow-600' : 'bg-gray-100 text-gray-600'}`}>
-                        {item.iconType === 'enquiry' && <MessageSquare className="w-5 h-5" />}
-                        {item.iconType === 'contract' && <FileSignature className="w-5 h-5" />}
-                        {item.iconType === 'payment' && <CreditCard className="w-5 h-5" />}
-                        {item.iconType === 'order' && <Package className="w-5 h-5" />}
-                        {item.iconType === 'quotation' && <FileText className="w-5 h-5" />}
-                        {item.iconType === 'general' && <CheckCircle2 className="w-5 h-5" />}
-                      </div>
-                      <div>
-                        <p className="font-bold text-gray-900 text-sm group-hover:text-primary transition-colors">{item.title}</p>
-                        {item.description && <p className="text-xs text-gray-500 mt-1">{item.description}</p>}
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <button className="p-2 text-gray-400 group-hover:text-primary transition-colors">
-                        <ChevronRight className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+
+              <button type="submit" className="w-full bg-slate-900 hover:bg-slate-800 text-white py-2 rounded-xl text-xs font-bold transition-colors shadow-sm">
+                Track Transaction Status
+              </button>
+            </form>
+
+            {trackedItem && trackedItem.type === 'not_found' && (
+              <div className="mt-3 p-2.5 bg-red-50 text-red-700 text-xs rounded-xl border border-red-100 flex items-center">
+                <AlertCircle className="w-4 h-4 mr-1.5 flex-shrink-0" /> No record found for that ID.
               </div>
             )}
+
+            {renderCompactTimeline()}
           </div>
+
+          {/* 2. Seller Pipeline Overview Summary Cards */}
+          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 space-y-3">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">Pipeline Summary</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 cursor-pointer hover:border-primary/40 transition-all" onClick={() => navigate('/dashboard/buyer-enquiries')}>
+                <span className="text-[10px] font-bold text-slate-500 block">Open Enquiries</span>
+                <span className="text-lg font-extrabold text-slate-900">{enquiries.length}</span>
+              </div>
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 cursor-pointer hover:border-primary/40 transition-all" onClick={() => navigate('/dashboard/sp-contracts')}>
+                <span className="text-[10px] font-bold text-slate-500 block">Draft Contracts</span>
+                <span className="text-lg font-extrabold text-slate-900">{draftContracts.length}</span>
+              </div>
+            </div>
+          </div>
+
         </div>
 
-        {/* Pinned Items & Timeline Tracker */}
-        <div className="space-y-6 flex flex-col">
-          
-          {/* Pinned Items (Actionable Items) */}
-          <div className="bg-white shadow-sm rounded-xl border border-gray-100 overflow-hidden flex-1">
-            <div className="px-6 py-5 border-b border-gray-200 bg-gray-50/50 flex justify-between items-center">
-              <h3 className="text-lg leading-6 font-bold text-gray-900 flex items-center">
-                <Pin className="w-5 h-5 mr-2 text-orange-500" /> Pinned Items (Pending)
+        {/* RIGHT COLUMN: HIGH HEAT MAP AREA (Action Center & Pinned Items in Warm High-Priority Tone) */}
+        <div className="lg:col-span-7 space-y-6">
+
+          {/* 1. TOP RIGHT: Pinned Items (Pending Urgent Actions) */}
+          <div className="bg-gradient-to-br from-amber-50/50 via-white to-orange-50/30 rounded-2xl border border-amber-200/80 shadow-sm overflow-hidden flex flex-col">
+            <div className="px-6 py-4 border-b border-amber-200/60 bg-amber-100/40 flex justify-between items-center">
+              <h3 className="text-base font-extrabold text-amber-950 flex items-center">
+                <Pin className="w-5 h-5 mr-2 text-amber-600 fill-amber-500" /> Pinned Items (Pending Actions)
               </h3>
-              <span className="bg-orange-100 text-orange-800 text-xs font-bold px-2.5 py-0.5 rounded-full">{allActionableItems.length} Pending</span>
+              <span className="bg-amber-600 text-white text-xs font-extrabold px-3 py-1 rounded-full shadow-sm">
+                {allActionableItems.length} Pending
+              </span>
             </div>
-            <div className="p-6 bg-white min-h-[200px]">
+
+            <div className="p-6 min-h-[160px]">
               {allActionableItems.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-gray-500 py-8">
-                  <CheckCircle2 className="w-12 h-12 text-gray-300 mb-3" />
-                  <p className="text-sm text-center">You're all caught up!</p>
+                <div className="flex flex-col items-center justify-center py-6 text-slate-400">
+                  <CheckCircle2 className="w-10 h-10 text-slate-300 mb-2" />
+                  <p className="text-xs font-medium">You're all caught up! No pending items.</p>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {allActionableItems.map((item, idx) => (
-                    <div key={`${item.id}-${idx}`} onClick={() => navigate(item.actionUrl)} className="flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:bg-orange-50 cursor-pointer group">
+                    <div
+                      key={`${item.id}-${idx}`}
+                      onClick={() => navigate(item.actionUrl)}
+                      className="flex items-center justify-between p-3.5 rounded-xl border border-amber-200/70 bg-white hover:bg-amber-50/80 hover:border-amber-400 cursor-pointer shadow-xs transition-all group"
+                    >
                       <div className="flex items-center flex-1">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 
-                          ${item.type === 'signature' ? 'bg-blue-100 text-blue-600' : 
-                            item.type === 'payment' ? 'bg-red-100 text-red-600' : 
-                            item.type === 'order' ? 'bg-purple-100 text-purple-600' : 'bg-orange-100 text-orange-600'}`}>
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center mr-3 shadow-xs
+                          ${item.type === 'signature' ? 'bg-blue-100 text-blue-700' :
+                            item.type === 'payment' ? 'bg-emerald-100 text-emerald-700' :
+                              item.type === 'order' ? 'bg-purple-100 text-purple-700' : 'bg-amber-100 text-amber-700'}`}>
                           {item.type === 'signature' && <FileSignature className="w-4 h-4" />}
                           {item.type === 'payment' && <CreditCard className="w-4 h-4" />}
                           {item.type === 'quotation' && <MessageSquare className="w-4 h-4" />}
                           {item.type === 'order' && <Package className="w-4 h-4" />}
                         </div>
                         <div>
-                          <p className="font-semibold text-gray-900 text-sm group-hover:text-primary leading-tight">{item.title}</p>
-                          <div className="flex items-center mt-1">
-                            <span className="text-xs text-gray-500 font-mono mr-2">{item.refId}</span>
-                          </div>
+                          <p className="font-bold text-slate-900 text-sm group-hover:text-amber-800 transition-colors leading-tight">
+                            {item.title}
+                          </p>
+                          <span className="text-[11px] text-slate-500 font-mono mt-0.5 block">{item.refId}</span>
                         </div>
                       </div>
-                      <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-primary transition-colors flex-shrink-0" />
+                      <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-amber-600 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
                     </div>
                   ))}
                 </div>
               )}
             </div>
-          </div>  </div>
+          </div>
+
+          {/* 2. BELOW PINNED: Action Center (Recent Activity & Live Updates) */}
+          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col">
+            <div className="px-6 py-4 border-b border-slate-200 bg-slate-50/70 flex justify-between items-center">
+              <h3 className="text-base font-bold text-slate-900 flex items-center">
+                <Activity className="w-5 h-5 mr-2 text-indigo-600" /> Action Center (Recent Activity)
+              </h3>
+              <span className="text-xs text-slate-400 font-medium">Live Session Feed</span>
+            </div>
+
+            <div className="p-6 bg-white flex-1">
+              {recentActions.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-10 text-slate-400">
+                  <CheckCircle2 className="w-12 h-12 text-slate-300 mb-2" />
+                  <p className="text-sm font-medium">No recent activity logged in this session.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {recentActions.map((item) => (
+                    <div
+                      key={item.id}
+                      onClick={() => navigate(item.actionUrl)}
+                      className="flex items-center justify-between p-4 rounded-xl border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/30 transition-all cursor-pointer group bg-white"
+                    >
+                      <div className="flex items-center flex-1">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center mr-3.5 
+                          ${item.iconType === 'enquiry' ? 'bg-blue-100 text-blue-600' :
+                            item.iconType === 'contract' ? 'bg-teal-100 text-teal-600' :
+                              item.iconType === 'payment' ? 'bg-emerald-100 text-emerald-600' :
+                                item.iconType === 'order' ? 'bg-purple-100 text-purple-600' :
+                                  item.iconType === 'quotation' ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-600'}`}>
+                          {item.iconType === 'enquiry' && <MessageSquare className="w-5 h-5" />}
+                          {item.iconType === 'contract' && <FileSignature className="w-5 h-5" />}
+                          {item.iconType === 'payment' && <CreditCard className="w-5 h-5" />}
+                          {item.iconType === 'order' && <Package className="w-5 h-5" />}
+                          {item.iconType === 'quotation' && <FileText className="w-5 h-5" />}
+                          {item.iconType === 'general' && <CheckCircle2 className="w-5 h-5" />}
+                        </div>
+                        <div>
+                          <p className="font-bold text-slate-900 text-sm group-hover:text-indigo-600 transition-colors">{item.title}</p>
+                          {item.description && <p className="text-xs text-slate-500 mt-0.5">{item.description}</p>}
+                        </div>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-indigo-600 transition-colors" />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+        </div>
+
       </div>
 
     </div>

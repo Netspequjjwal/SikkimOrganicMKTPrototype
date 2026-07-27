@@ -1,7 +1,7 @@
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 
 export type ApplicationStatus = 'Pending' | 'Approved' | 'Returned' | 'Rejected' | 'Suspended';
-export type SellerType = 'ICS Service Provider' | 'Individual Farmer' | 'IFFCO';
+export type SellerType = 'ICS' | 'Individual Farmer' | 'IFFCO';
 
 export interface SellerRegistration {
   id: string;
@@ -37,6 +37,7 @@ export interface SellerRegistration {
   issueDate?: string;
   expiryDate?: string;
   productsCovered?: string;
+  scopeVerifiedCrops?: string[]; // Scope Certified Organic Produces authorized for listing
   cultivatedArea?: number;
   noOfFarmers?: number;
   noOfGrowerGroups?: number;
@@ -85,17 +86,19 @@ interface SellerContextType {
   applications: SellerRegistration[];
   addApplication: (app: Omit<SellerRegistration, 'id' | 'status' | 'submittedAt' | 'trustBadges'>) => SellerRegistration;
   updateApplicationStatus: (id: string, status: ApplicationStatus, remarks?: string, badges?: string[]) => void;
+  resetToUnregistered: () => void;
+  setDemoStatus: (status: ApplicationStatus) => void;
 }
 
 const initialData: SellerRegistration[] = [
   {
     id: 'SEL-2026-000101',
-    sellerType: 'ICS Service Provider',
+    sellerType: 'ICS',
     status: 'Pending',
     submittedAt: '2026-06-15T10:30:00Z',
     legalName: 'Sikkim Organic Alive Pvt Ltd',
     tradeName: 'Sikkim Organic Alive',
-    orgType: 'Private Limited',
+    orgType: 'Internal Management System / Control Unit',
     establishmentYear: '2015',
     authorizedRep: 'Tenzing Lepcha',
     designation: 'Managing Director',
@@ -109,6 +112,7 @@ const initialData: SellerRegistration[] = [
     certificationSystem: 'NPOP',
     certificationBody: 'Sikkim State Certification Agency',
     scopeCertNumber: 'ORG/SC/2026/001',
+    scopeVerifiedCrops: ['Large Cardamom', 'Dzongu Ginger', 'Lakadong Turmeric', 'Buckwheat', 'Sikkim Mandarin', 'Dalle Khursani'],
     noOfFarmers: 450,
     cultivatedArea: 1200,
     icsAvailability: true,
@@ -124,7 +128,7 @@ const initialData: SellerRegistration[] = [
     status: 'Pending',
     submittedAt: '2026-07-01T14:45:00Z',
     legalName: 'Namchi Organic Farmers Group',
-    orgType: 'Farmer Producer Organization',
+    orgType: 'Registered Legal Entity / Farmer Collective',
     establishmentYear: '2018',
     authorizedRep: 'Priya Sharma',
     designation: 'President',
@@ -136,6 +140,8 @@ const initialData: SellerRegistration[] = [
     pinCode: '737126',
     businessActivities: ['Production'],
     certificationSystem: 'PGS',
+    scopeCertNumber: 'ORG/SC/2026/088',
+    scopeVerifiedCrops: ['Dzongu Ginger', 'Lakadong Turmeric', 'Sikkim Mandarin', 'Dalle Khursani'],
     noOfFarmers: 120,
     cultivatedArea: 350,
     scopeCertFileName: 'Namchi_PGS_Cert.pdf',
@@ -147,7 +153,7 @@ const initialData: SellerRegistration[] = [
     submittedAt: '2026-06-20T09:15:00Z',
     legalName: 'Indian Farmers Fertiliser Cooperative Limited (Organic Div)',
     tradeName: 'IFFCO Organics Sikkim',
-    orgType: 'Cooperative Society',
+    orgType: 'Multi-State Cooperative Society',
     establishmentYear: '2020',
     authorizedRep: 'Dr. Ramesh Kumar',
     designation: 'State Head',
@@ -158,6 +164,8 @@ const initialData: SellerRegistration[] = [
     district: 'Gangtok',
     pinCode: '737101',
     businessActivities: ['Processing', 'Export', 'Trading'],
+    scopeCertNumber: 'ORG/SC/2026/099',
+    scopeVerifiedCrops: ['Lakadong Turmeric', 'Buckwheat', 'Large Cardamom', 'Sikkim Mandarin'],
     isExporting: true,
     iec: '0500000000',
     apedaRcmc: 'APEDA/2026/001',
@@ -181,7 +189,7 @@ export const SellerRegistrationProvider: React.FC<{ children: ReactNode }> = ({ 
       status: 'Pending',
       submittedAt: new Date().toISOString(),
     };
-    setApplications((prev) => [newApp, ...prev]);
+    setApplications((prev) => [newApp, ...prev.filter(a => a.id !== newId)]);
     return newApp;
   };
 
@@ -198,8 +206,35 @@ export const SellerRegistrationProvider: React.FC<{ children: ReactNode }> = ({ 
     );
   };
 
+  const resetToUnregistered = () => {
+    setApplications([]);
+  };
+
+  const setDemoStatus = (status: ApplicationStatus) => {
+    if (applications.length === 0) {
+      setApplications([initialData[0]]);
+    }
+    setApplications((prev) => {
+      if (prev.length === 0) return prev;
+      return [
+        {
+          ...prev[0],
+          status,
+          trustBadges: status === 'Approved' ? ['Government Approved Seller', 'Export Ready', 'NPOP Certified'] : []
+        },
+        ...prev.slice(1)
+      ];
+    });
+  };
+
   return (
-    <SellerRegistrationContext.Provider value={{ applications, addApplication, updateApplicationStatus }}>
+    <SellerRegistrationContext.Provider value={{
+      applications,
+      addApplication,
+      updateApplicationStatus,
+      resetToUnregistered,
+      setDemoStatus
+    }}>
       {children}
     </SellerRegistrationContext.Provider>
   );
