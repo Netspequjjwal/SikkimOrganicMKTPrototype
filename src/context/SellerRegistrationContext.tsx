@@ -34,6 +34,10 @@ export interface SellerRegistration {
   certificationSystem?: string;
   certificationBody?: string;
   scopeCertNumber?: string;
+  scopeCertValidityYear?: string;
+  scopeCertIssueDate?: string;
+  scopeCertExpiryDate?: string;
+  yearWiseScopeCerts?: Array<{ year: string; certNumber: string; validFrom: string; validTo: string }>;
   issueDate?: string;
   expiryDate?: string;
   productsCovered?: string;
@@ -49,11 +53,13 @@ export interface SellerRegistration {
   gstin?: string;
   pan?: string;
   fssaiLicenseNumber?: string;
+  fssaiExpiryDate?: string;
   fssaiLicenseType?: string;
   jaivikBharatNumber?: string;
   isExporting?: boolean;
   iec?: string;
   apedaRcmc?: string;
+  apedaRcmcExpiryDate?: string;
   exportMarkets?: string;
 
   // 4. Infrastructure & Traceability
@@ -112,6 +118,13 @@ const initialData: SellerRegistration[] = [
     certificationSystem: 'NPOP',
     certificationBody: 'Sikkim State Certification Agency',
     scopeCertNumber: 'ORG/SC/2026/001',
+    scopeCertValidityYear: '2026 - 2027 (Current Annual Cycle)',
+    scopeCertIssueDate: '2026-04-01',
+    scopeCertExpiryDate: '2027-03-31',
+    yearWiseScopeCerts: [
+      { year: '2025 - 2026', certNumber: 'ORG/SC/2025/084', validFrom: '2025-04-01', validTo: '2026-03-31' },
+      { year: '2026 - 2027', certNumber: 'ORG/SC/2026/001', validFrom: '2026-04-01', validTo: '2027-03-31' }
+    ],
     scopeVerifiedCrops: ['Large Cardamom', 'Dzongu Ginger', 'Lakadong Turmeric', 'Buckwheat', 'Sikkim Mandarin', 'Dalle Khursani'],
     noOfFarmers: 450,
     cultivatedArea: 1200,
@@ -119,6 +132,11 @@ const initialData: SellerRegistration[] = [
     gstin: '11ABCDE1234F1Z5',
     pan: 'ABCDE1234F',
     fssaiLicenseNumber: '10020011001234',
+    fssaiExpiryDate: '2028-12-31',
+    isExporting: true,
+    iec: '0123456789',
+    apedaRcmc: 'APEDA/RCMC/2026/1023',
+    apedaRcmcExpiryDate: '2029-03-31',
     scopeCertFileName: 'SOA_ScopeCert.pdf',
     fssaiFileName: 'SOA_FSSAI.pdf',
   },

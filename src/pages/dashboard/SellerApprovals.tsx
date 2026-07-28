@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useSellerRegistration, SellerRegistration, ApplicationStatus, SellerType } from '../../context/SellerRegistrationContext';
-import { Search, Filter, Eye, FileText, CheckCircle, XCircle, Clock, ArrowLeft, Download, AlertCircle, Building2, Truck, Users } from 'lucide-react';
+import { Search, Filter, Eye, FileText, CheckCircle, XCircle, Clock, ArrowLeft, Download, AlertCircle, Building2, Truck, Users, Calendar } from 'lucide-react';
 import clsx from 'clsx';
 
 const SellerApprovals: React.FC = () => {
@@ -128,6 +128,39 @@ const SellerApprovals: React.FC = () => {
                     </div>
                     <div><span className="text-xs text-gray-500 block uppercase">Certification System</span><span className="text-sm font-medium text-gray-900">{selectedApp.certificationSystem || 'N/A'}</span></div>
                     <div><span className="text-xs text-gray-500 block uppercase">Scope Cert No</span><span className="text-sm font-medium text-gray-900">{selectedApp.scopeCertNumber || 'N/A'}</span></div>
+                    
+                    {/* Annual Scope Validity & Expiry Banner */}
+                    <div className="col-span-2 bg-amber-50 p-3.5 rounded-xl border border-amber-200 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-extrabold text-amber-950 flex items-center">
+                          <Calendar className="w-3.5 h-3.5 text-amber-700 mr-1.5" />
+                          Scope Certificate Annual Validity Period
+                        </span>
+                        <span className="bg-amber-200 text-amber-950 font-black text-[10px] px-2 py-0.5 rounded-full">
+                          {selectedApp.scopeCertValidityYear || '2026 - 2027 (Annual)'}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div><span className="text-amber-800 text-[10px] block font-bold uppercase">Issue Date</span><span className="font-extrabold text-slate-900">{selectedApp.scopeCertIssueDate || '2026-04-01'}</span></div>
+                        <div><span className="text-amber-800 text-[10px] block font-bold uppercase">Expiry Date</span><span className="font-extrabold text-red-700">{selectedApp.scopeCertExpiryDate || '2027-03-31'}</span></div>
+                      </div>
+
+                      {/* Year-Wise Scope Certificates History */}
+                      {selectedApp.yearWiseScopeCerts && selectedApp.yearWiseScopeCerts.length > 0 && (
+                        <div className="pt-2 border-t border-amber-200/80 space-y-1">
+                          <span className="text-[10px] font-extrabold text-amber-900 block uppercase">Year-Wise Annual Scope Certificate History:</span>
+                          <div className="space-y-1">
+                            {selectedApp.yearWiseScopeCerts.map((yc, idx) => (
+                              <div key={idx} className="bg-white px-2.5 py-1 rounded border border-amber-200 flex justify-between items-center text-[10px]">
+                                <span className="font-bold text-slate-900">Cycle: {yc.year} ({yc.certNumber})</span>
+                                <span className="text-slate-600 font-semibold">{yc.validFrom} to {yc.validTo}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
                     <div><span className="text-xs text-gray-500 block uppercase">No of Farmers</span><span className="text-sm font-medium text-gray-900">{selectedApp.noOfFarmers || 'N/A'}</span></div>
                     <div><span className="text-xs text-gray-500 block uppercase">Cultivated Area (Ha)</span><span className="text-sm font-medium text-gray-900">{selectedApp.cultivatedArea || 'N/A'}</span></div>
                   </div>
@@ -138,12 +171,20 @@ const SellerApprovals: React.FC = () => {
                   <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-3 border-b pb-2">3. Statutory & Export Compliance</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div><span className="text-xs text-gray-500 block uppercase">GSTIN</span><span className="text-sm font-medium text-gray-900">{selectedApp.gstin || 'N/A'}</span></div>
-                    <div><span className="text-xs text-gray-500 block uppercase">FSSAI License</span><span className="text-sm font-medium text-gray-900">{selectedApp.fssaiLicenseNumber || 'N/A'}</span></div>
+                    <div>
+                      <span className="text-xs text-gray-500 block uppercase">FSSAI License</span>
+                      <span className="text-sm font-medium text-gray-900 block">{selectedApp.fssaiLicenseNumber || 'N/A'}</span>
+                      {selectedApp.fssaiExpiryDate && <span className="text-[10px] font-bold text-slate-500">Expires: {selectedApp.fssaiExpiryDate}</span>}
+                    </div>
                     <div><span className="text-xs text-gray-500 block uppercase">Export Ready</span><span className="text-sm font-medium text-gray-900">{selectedApp.isExporting ? 'Yes' : 'No'}</span></div>
                     {selectedApp.isExporting && (
                       <>
                         <div><span className="text-xs text-gray-500 block uppercase">IEC</span><span className="text-sm font-medium text-gray-900">{selectedApp.iec}</span></div>
-                        <div><span className="text-xs text-gray-500 block uppercase">APEDA RCMC</span><span className="text-sm font-medium text-gray-900">{selectedApp.apedaRcmc}</span></div>
+                        <div>
+                          <span className="text-xs text-gray-500 block uppercase">APEDA RCMC</span>
+                          <span className="text-sm font-medium text-gray-900 block">{selectedApp.apedaRcmc}</span>
+                          {selectedApp.apedaRcmcExpiryDate && <span className="text-[10px] font-bold text-slate-500">Expires: {selectedApp.apedaRcmcExpiryDate}</span>}
+                        </div>
                       </>
                     )}
                   </div>
@@ -153,24 +194,41 @@ const SellerApprovals: React.FC = () => {
               {/* Sidebar: Documents & Actions */}
               <div className="space-y-6">
                 <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                  <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-3 border-b pb-2">Uploaded Documents</h3>
+                  <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-3 border-b pb-2">Uploaded Documents & Validity</h3>
                   <div className="space-y-3">
                     {[
-                      { name: '1. Scope Certificate (NPOP/PGS)', file: selectedApp.scopeCertFileName || 'NPOP_Scope_Certificate_2026.pdf' },
-                      { name: '2. FSSAI License', file: selectedApp.fssaiFileName || 'FSSAI_Central_License.pdf' },
+                      { 
+                        name: '1. Scope Certificate (NPOP/PGS)', 
+                        file: selectedApp.scopeCertFileName || 'NPOP_Scope_Certificate_2026.pdf',
+                        validity: `Valid till ${selectedApp.scopeCertExpiryDate || '2027-03-31'}`
+                      },
+                      { 
+                        name: '2. FSSAI License', 
+                        file: selectedApp.fssaiFileName || 'FSSAI_Central_License.pdf',
+                        validity: `Valid till ${selectedApp.fssaiExpiryDate || '2028-12-31'}`
+                      },
                       { name: '3. IEC Certificate', file: 'IEC_Import_Export_Code_Cert.pdf' },
-                      { name: '4. APEDA RCMC Document', file: 'APEDA_RCMC_Organic_Membership.pdf' },
+                      { 
+                        name: '4. APEDA RCMC Document', 
+                        file: 'APEDA_RCMC_Organic_Membership.pdf',
+                        validity: `Valid till ${selectedApp.apedaRcmcExpiryDate || '2029-03-31'}`
+                      },
                       { name: 'Organization Logo', file: selectedApp.logoFileName },
                     ].filter(d => d.file).map((doc, idx) => (
-                      <div key={idx} className="border border-gray-100 rounded-md p-2 flex justify-between items-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
+                      <div key={idx} className="border border-gray-200 rounded-lg p-2.5 flex justify-between items-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
                         <div className="flex items-center overflow-hidden">
-                          <FileText className="w-4 h-4 text-primary mr-2 flex-shrink-0" />
+                          <FileText className="w-4 h-4 text-emerald-700 mr-2 flex-shrink-0" />
                           <div className="truncate">
                             <p className="text-xs font-bold text-gray-900">{doc.name}</p>
                             <p className="text-[10px] text-gray-500 truncate">{doc.file}</p>
+                            {doc.validity && (
+                              <span className="text-[9px] font-extrabold text-amber-900 bg-amber-100 px-1.5 py-0.5 rounded inline-block mt-0.5">
+                                📅 {doc.validity}
+                              </span>
+                            )}
                           </div>
                         </div>
-                        <Download className="w-4 h-4 text-gray-400" />
+                        <Download className="w-4 h-4 text-gray-400 shrink-0" />
                       </div>
                     ))}
                     {!selectedApp.scopeCertFileName && !selectedApp.fssaiFileName && (

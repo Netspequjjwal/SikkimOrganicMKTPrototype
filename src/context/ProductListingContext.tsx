@@ -70,6 +70,7 @@ export interface ProductListing {
   // Product Metadata
   commodity: string; // e.g. Large Cardamom, Lakadong Turmeric, Dzongu Ginger
   variety: string; // e.g. Ramsay, Sawney, Golsey
+  hsCode?: string; // Harmonized System Code (e.g. 09083110)
   grade: 'Grade A++' | 'Premium' | 'Superior' | 'Standard';
   organicCategory: OrganicCategory;
   qualityParameters: QualityParameters;
@@ -151,6 +152,7 @@ const initialListings: ProductListing[] = [
     apedaRcmcFileName: 'APEDA_RCMC_Organic_Membership.pdf',
     commodity: 'Large Cardamom',
     variety: 'Ramsay (Bharlang)',
+    hsCode: '09083110',
     grade: 'Grade A++',
     organicCategory: 'NPOP Certified 100% Organic',
     qualityParameters: {

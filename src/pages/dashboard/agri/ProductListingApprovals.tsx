@@ -275,14 +275,16 @@ export default function ProductListingApprovals() {
                 Step 2 Audit: Product Metadata, Pricing & Lab Quality Specs
               </h4>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-white p-3 rounded-xl border border-slate-200 text-xs">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3 bg-white p-3 rounded-xl border border-slate-200 text-xs">
                 <div><span className="text-slate-400 text-[10px] uppercase font-bold">Commodity & Variety</span><strong className="text-slate-900 block">{reviewListing.commodity} ({reviewListing.variety})</strong></div>
+                <div><span className="text-slate-400 text-[10px] uppercase font-bold">HS Code</span><strong className="font-mono font-bold text-slate-900 block">{reviewListing.hsCode || '09083110'}</strong></div>
                 <div><span className="text-slate-400 text-[10px] uppercase font-bold">Grade Classification</span><strong className="text-indigo-700 block">{reviewListing.grade}</strong></div>
                 <div><span className="text-slate-400 text-[10px] uppercase font-bold">Organic Category</span><strong className="text-emerald-800 block">{reviewListing.organicCategory}</strong></div>
                 <div><span className="text-slate-400 text-[10px] uppercase font-bold">Price per MT</span><strong className="text-emerald-700 text-sm block">₹{reviewListing.pricePerUnit.toLocaleString()} / MT</strong></div>
                 <div><span className="text-slate-400 text-[10px] uppercase font-bold">Packaging Type</span><strong className="text-slate-800 block">{reviewListing.packagingType}</strong></div>
                 <div><span className="text-slate-400 text-[10px] uppercase font-bold">Unit of Measure</span><strong className="text-slate-800 block">{reviewListing.unitOfMeasure}</strong></div>
                 <div><span className="text-slate-400 text-[10px] uppercase font-bold">MOQ</span><strong className="text-slate-800 block">{reviewListing.moq} {reviewListing.unitOfMeasure}</strong></div>
+                <div><span className="text-slate-400 text-[10px] uppercase font-bold">Lot / Batch Number</span><strong className="font-mono font-bold text-slate-900 block">{reviewListing.lotBatchNumber || 'LOT-2026-SKM-001'}</strong></div>
                 <div><span className="text-slate-400 text-[10px] uppercase font-bold">District</span><strong className="text-slate-800 block">{reviewListing.district}, Sikkim</strong></div>
               </div>
 

@@ -31,6 +31,7 @@ export default function CreateProductListing() {
     // Listing details
     commodity: '',
     variety: '',
+    hsCode: '09083110',
     grade: 'Grade A++' as 'Grade A++' | 'Premium' | 'Superior' | 'Standard',
     organicCategory: 'NPOP Certified 100% Organic' as OrganicCategory,
     packagingType: 'Jute Bag (50kg)' as any,
@@ -63,7 +64,7 @@ export default function CreateProductListing() {
 
     // Ready Stock optional fields
     actualHarvestQuantity: 10,
-    lotBatchNumber: '',
+    lotBatchNumber: 'LOT-2026-SKM-001',
     harvestDate: new Date().toISOString().split('T')[0],
 
     // Images
@@ -348,8 +349,8 @@ export default function CreateProductListing() {
                 </p>
               </div>
 
-              {/* Commodity & Variety */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Commodity, Variety, HS Code & Grade */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                     Commodity
@@ -375,6 +376,18 @@ export default function CreateProductListing() {
                 </div>
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                    HS Code (Harmonized System)
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.hsCode}
+                    onChange={e => setFormData({ ...formData, hsCode: e.target.value })}
+                    placeholder="e.g. 09083110 / 09101110"
+                    className="w-full p-3 border border-slate-300 rounded-xl text-sm font-bold font-mono text-slate-900"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                     Grade Classification
                   </label>
                   <select
@@ -390,11 +403,11 @@ export default function CreateProductListing() {
                 </div>
               </div>
 
-              {/* Organic Category & Pricing */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Organic Category, Pricing & Lot/Batch Number */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                    Organic Certification Category
+                    OC Category
                   </label>
                   <select
                     value={formData.organicCategory}
@@ -433,6 +446,19 @@ export default function CreateProductListing() {
                     onChange={e => setFormData({ ...formData, pricePerUnit: Number(e.target.value) })}
                     placeholder="e.g. 180000"
                     className="w-full p-3 border border-slate-300 rounded-xl text-sm font-bold text-slate-900"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                    Lot / Batch Number
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.lotBatchNumber}
+                    onChange={e => setFormData({ ...formData, lotBatchNumber: e.target.value })}
+                    placeholder="e.g. LOT-2026-SKM-001"
+                    className="w-full p-3 border border-slate-300 rounded-xl text-sm font-bold font-mono text-slate-900"
                   />
                 </div>
               </div>
@@ -498,8 +524,8 @@ export default function CreateProductListing() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-[11px] font-semibold text-slate-600 mb-1">Testing Laboratory Name</label>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         value={formData.labName}
                         onChange={e => setFormData({ ...formData, labName: e.target.value })}
                         placeholder="e.g. NABL Accredited Quality Testing Lab, Gangtok"
@@ -508,8 +534,8 @@ export default function CreateProductListing() {
                     </div>
                     <div>
                       <label className="block text-[11px] font-semibold text-slate-600 mb-1">Report Issue Date</label>
-                      <input 
-                        type="date" 
+                      <input
+                        type="date"
                         value={formData.labReportDate}
                         onChange={e => setFormData({ ...formData, labReportDate: e.target.value })}
                         className="w-full p-2.5 border border-slate-300 rounded-xl text-xs font-bold text-slate-900"
@@ -536,17 +562,17 @@ export default function CreateProductListing() {
 
                       <label className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-xl cursor-pointer shadow-xs transition-colors">
                         Browse File
-                        <input 
-                          type="file" 
-                          accept=".pdf,.png,.jpg,.jpeg" 
+                        <input
+                          type="file"
+                          accept=".pdf,.png,.jpg,.jpeg"
                           onChange={e => {
                             if (e.target.files && e.target.files[0]) {
                               const f = e.target.files[0];
                               setFormData(prev => ({ ...prev, labReportFileName: f.name }));
                               toast.success(`Lab Test Report "${f.name}" uploaded successfully!`);
                             }
-                          }} 
-                          className="hidden" 
+                          }}
+                          className="hidden"
                         />
                       </label>
                     </div>

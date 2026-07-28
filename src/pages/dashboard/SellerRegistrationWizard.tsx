@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSellerRegistration, SellerType } from '../../context/SellerRegistrationContext';
 import toast from 'react-hot-toast';
-import { UploadCloud, FileText, CheckCircle, AlertCircle, X, ChevronRight, ChevronLeft, Building2, Users, Leaf, Truck, ArrowLeft, ArrowRight, Save } from 'lucide-react';
+import { UploadCloud, FileText, CheckCircle, AlertCircle, X, ChevronRight, ChevronLeft, Building2, Users, Leaf, Truck, ArrowLeft, ArrowRight, Save, Calendar } from 'lucide-react';
 
 const STEPS = [
   'Seller Type',
@@ -39,15 +39,24 @@ const SellerRegistrationWizard: React.FC = () => {
     certificationSystem: 'NPOP',
     certificationBody: 'Sikkim State Organic Certification Agency (SSOCA)',
     scopeCertNumber: 'ORG/SC/2026/001',
+    scopeCertValidityYear: '2026 - 2027 (Current Annual Cycle)',
+    scopeCertIssueDate: '2026-04-01',
+    scopeCertExpiryDate: '2027-03-31',
+    yearWiseScopeCerts: [
+      { year: '2025 - 2026', certNumber: 'ORG/SC/2025/084', validFrom: '2025-04-01', validTo: '2026-03-31' },
+      { year: '2026 - 2027', certNumber: 'ORG/SC/2026/001', validFrom: '2026-04-01', validTo: '2027-03-31' }
+    ],
     noOfFarmers: '125',
     cultivatedArea: '250',
     icsAvailability: true,
     gstin: '11AAAAA0000A1Z5',
     pan: 'AAAAA0000A',
     fssaiLicenseNumber: '11419850000001',
+    fssaiExpiryDate: '2028-12-31',
     isExporting: true,
     iec: '0123456789',
     apedaRcmc: 'APEDA/RCMC/2026/1023',
+    apedaRcmcExpiryDate: '2029-03-31',
     warehouseAvailability: true,
     processingUnit: false,
     coldStorage: true,
@@ -57,6 +66,28 @@ const SellerRegistrationWizard: React.FC = () => {
   const [declarations, setDeclarations] = useState({ decl1: false, decl2: false });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [customCropInput, setCustomCropInput] = useState('');
+
+  const handleAddAnnualScopeCert = () => {
+    const nextYearNum = 2027 + (formData.yearWiseScopeCerts?.length || 0) - 1;
+    const newRecord = {
+      year: `${nextYearNum} - ${nextYearNum + 1}`,
+      certNumber: `ORG/SC/${nextYearNum}/099`,
+      validFrom: `${nextYearNum}-04-01`,
+      validTo: `${nextYearNum + 1}-03-31`
+    };
+    setFormData((prev: any) => ({
+      ...prev,
+      yearWiseScopeCerts: [...(prev.yearWiseScopeCerts || []), newRecord]
+    }));
+    toast.success(`Added Scope Certificate record for ${newRecord.year}`);
+  };
+
+  const handleRemoveAnnualScopeCert = (index: number) => {
+    setFormData((prev: any) => ({
+      ...prev,
+      yearWiseScopeCerts: (prev.yearWiseScopeCerts || []).filter((_: any, i: number) => i !== index)
+    }));
+  };
 
   const handleAddCrop = (cropName: string) => {
     const trimmed = cropName.trim();
@@ -310,9 +341,109 @@ const SellerRegistrationWizard: React.FC = () => {
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Scope Certificate Number</label>
+          <label className="block text-sm font-medium text-gray-700">Active Scope Certificate Number *</label>
           <input type="text" name="scopeCertNumber" value={formData.scopeCertNumber} onChange={handleInputChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm p-2.5 border" />
           {errors.scopeCertNumber && <p className="text-red-500 text-xs mt-1">{errors.scopeCertNumber}</p>}
+        </div>
+      </div>
+
+      {/* Scope Certificate Annual Validity & Expiry Period Box */}
+      <div className="bg-amber-50/80 border border-amber-300 rounded-2xl p-5 space-y-4 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-amber-200/80 pb-3 gap-2">
+          <div>
+            <h4 className="text-sm font-extrabold text-amber-950 flex items-center">
+              <Calendar className="w-4 h-4 text-amber-700 mr-2 shrink-0" />
+              Annual Scope Certificate Validity & Expiry Cycle *
+            </h4>
+            <p className="text-xs text-amber-800 mt-0.5">
+              Scope Certificates expire annually under NPOP/PGS standards. Specify your active validity period and track year-wise certificates.
+            </p>
+          </div>
+          <span className="bg-amber-200 text-amber-950 text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider self-start sm:self-auto shrink-0">
+            Annual Renewal Required
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+              Active Annual Cycle *
+            </label>
+            <select
+              name="scopeCertValidityYear"
+              value={formData.scopeCertValidityYear || '2026 - 2027 (Current Annual Cycle)'}
+              onChange={handleInputChange}
+              className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-amber-500 outline-none"
+            >
+              <option value="2026 - 2027 (Current Annual Cycle)">2026 - 2027 (Current Cycle)</option>
+              <option value="2025 - 2026 (Previous Cycle)">2025 - 2026 (Previous Cycle)</option>
+              <option value="2027 - 2028 (Upcoming Cycle)">2027 - 2028 (Upcoming Cycle)</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+              Issue Date (Valid From) *
+            </label>
+            <input
+              type="date"
+              name="scopeCertIssueDate"
+              value={formData.scopeCertIssueDate || '2026-04-01'}
+              onChange={handleInputChange}
+              className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-amber-500 outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+              Expiry Date (Valid Until) *
+            </label>
+            <input
+              type="date"
+              name="scopeCertExpiryDate"
+              value={formData.scopeCertExpiryDate || '2027-03-31'}
+              onChange={handleInputChange}
+              className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-amber-500 outline-none"
+            />
+          </div>
+        </div>
+
+        {/* Year-wise Annual Scope Certificates History */}
+        <div className="pt-3 border-t border-amber-200/80 space-y-2">
+          <div className="flex justify-between items-center">
+            <span className="text-xs font-extrabold text-slate-800">Year-Wise Scope Certificate History & Renewal Records:</span>
+            <button
+              type="button"
+              onClick={handleAddAnnualScopeCert}
+              className="text-[11px] font-extrabold text-amber-950 bg-amber-200 hover:bg-amber-300 px-3 py-1 rounded-xl transition-colors flex items-center shadow-xs"
+            >
+              + Add Annual Scope Cert Record
+            </button>
+          </div>
+
+          <div className="space-y-2">
+            {(formData.yearWiseScopeCerts || []).map((item: any, idx: number) => (
+              <div key={idx} className="bg-white p-3 rounded-xl border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-2 shadow-2xs">
+                <div className="flex items-center gap-2">
+                  <span className="bg-amber-100 text-amber-900 font-extrabold text-[10px] px-2.5 py-0.5 rounded-full border border-amber-200">
+                    Cycle: {item.year}
+                  </span>
+                  <span className="font-mono font-bold text-slate-900">{item.certNumber}</span>
+                </div>
+                <div className="flex items-center gap-4 text-[11px] text-slate-600">
+                  <span>Valid: <strong className="text-slate-900">{item.validFrom}</strong> to <strong className="text-slate-900">{item.validTo}</strong></span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveAnnualScopeCert(idx)}
+                    className="text-red-500 hover:text-red-700 font-extrabold text-xs"
+                    title="Remove record"
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -414,7 +545,7 @@ const SellerRegistrationWizard: React.FC = () => {
   const renderStep3 = () => (
     <div className="space-y-6">
       <h3 className="text-xl font-bold text-gray-900 border-b pb-2">Statutory & Export Compliance</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div>
           <label className="block text-sm font-medium text-gray-700">GSTIN</label>
           <input type="text" name="gstin" value={formData.gstin} onChange={handleInputChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm p-2.5 border" />
@@ -422,6 +553,10 @@ const SellerRegistrationWizard: React.FC = () => {
         <div>
           <label className="block text-sm font-medium text-gray-700">FSSAI License Number</label>
           <input type="text" name="fssaiLicenseNumber" value={formData.fssaiLicenseNumber} onChange={handleInputChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm p-2.5 border" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">FSSAI License Expiry Date</label>
+          <input type="date" name="fssaiExpiryDate" value={formData.fssaiExpiryDate || '2028-12-31'} onChange={handleInputChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm p-2.5 border" />
         </div>
       </div>
       
@@ -432,7 +567,7 @@ const SellerRegistrationWizard: React.FC = () => {
         </label>
         
         {formData.isExporting && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pl-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pl-8">
             <div>
               <label className="block text-sm font-medium text-gray-700">IEC (Import Export Code) *</label>
               <input type="text" name="iec" value={formData.iec} onChange={handleInputChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm p-2.5 border" />
@@ -442,6 +577,10 @@ const SellerRegistrationWizard: React.FC = () => {
               <label className="block text-sm font-medium text-gray-700">APEDA RCMC Number *</label>
               <input type="text" name="apedaRcmc" value={formData.apedaRcmc} onChange={handleInputChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm p-2.5 border" />
               {errors.apedaRcmc && <p className="text-red-500 text-xs mt-1">{errors.apedaRcmc}</p>}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">APEDA RCMC Expiry Date *</label>
+              <input type="date" name="apedaRcmcExpiryDate" value={formData.apedaRcmcExpiryDate || '2029-03-31'} onChange={handleInputChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm p-2.5 border" />
             </div>
           </div>
         )}
@@ -473,13 +612,33 @@ const SellerRegistrationWizard: React.FC = () => {
     // Dynamic docs based on seller type and export
     const requiredDocs = [
       { key: 'logo', label: 'Organization/Farmer Logo', formats: 'PNG, JPG, JPEG', size: 'Max 2MB' },
-      { key: 'scopeCert', label: formData.sellerType === 'Individual Farmer' ? 'Scope Certificate (of Grower Group)' : 'Scope Certificate (NPOP/PGS)', formats: 'PDF, JPG, PNG', size: 'Max 5MB' }
+      { 
+        key: 'scopeCert', 
+        label: formData.sellerType === 'Individual Farmer' ? 'Scope Certificate (of Grower Group)' : 'Scope Certificate (NPOP/PGS)', 
+        formats: 'PDF, JPG, PNG', 
+        size: 'Max 5MB',
+        validity: `Annual Validity: ${formData.scopeCertValidityYear || '2026-2027'} (Expires ${formData.scopeCertExpiryDate || '2027-03-31'})`
+      }
     ];
     
-    if (formData.sellerType !== 'Individual Farmer') requiredDocs.push({ key: 'fssai', label: 'FSSAI License', formats: 'PDF, JPG, PNG', size: 'Max 5MB' });
+    if (formData.sellerType !== 'Individual Farmer') {
+      requiredDocs.push({ 
+        key: 'fssai', 
+        label: 'FSSAI License', 
+        formats: 'PDF, JPG, PNG', 
+        size: 'Max 5MB',
+        validity: `Valid until: ${formData.fssaiExpiryDate || '2028-12-31'}`
+      });
+    }
     if (formData.isExporting) {
       requiredDocs.push({ key: 'iecDoc', label: 'IEC Certificate', formats: 'PDF, JPG, PNG', size: 'Max 5MB' });
-      requiredDocs.push({ key: 'apedaDoc', label: 'APEDA RCMC', formats: 'PDF, JPG, PNG', size: 'Max 5MB' });
+      requiredDocs.push({ 
+        key: 'apedaDoc', 
+        label: 'APEDA RCMC', 
+        formats: 'PDF, JPG, PNG', 
+        size: 'Max 5MB',
+        validity: `Valid until: ${formData.apedaRcmcExpiryDate || '2029-03-31'}`
+      });
     }
 
     return (
@@ -499,10 +658,15 @@ const SellerRegistrationWizard: React.FC = () => {
           {requiredDocs.map(doc => (
             <div key={doc.key} className="border border-gray-200 rounded-xl p-4 bg-gray-50/80 flex flex-col justify-between">
               <div>
-                <div className="flex justify-between items-start mb-2">
+                <div className="flex justify-between items-start mb-1">
                   <label className="block text-sm font-bold text-gray-800">{doc.label} *</label>
                   <span className="text-[10px] font-semibold text-gray-600 bg-gray-200/80 px-2 py-0.5 rounded-full">{doc.size}</span>
                 </div>
+                {doc.validity && (
+                  <p className="text-[11px] font-extrabold text-amber-900 bg-amber-100/90 border border-amber-200 px-2 py-0.5 rounded-md w-fit mb-2">
+                    📅 {doc.validity}
+                  </p>
+                )}
               </div>
               
               {!files[doc.key] ? (
