@@ -296,7 +296,7 @@ const PaymentConfiguration: React.FC = () => {
               </p>
 
               <div className="space-y-3">
-                {['Rinzing Bhutia (President)', 'Karma Lepcha (Secretary)', 'Tenzing Norgay (Director)'].map(sig => (
+                {['Rinzing Bhutia (President)', 'Ongmu Lepcha (Secretary)', 'Tenzing Norgay (Director)'].map(sig => (
                   <label key={sig} className="flex items-center p-4 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
                     <input
                       type="radio"

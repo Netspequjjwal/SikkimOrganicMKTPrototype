@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useContract } from '../../../context/ContractContext';
 import { useAuth } from '../../../context/AuthContext';
-import { Search, Filter, Download, ArrowUpRight, CheckCircle, Clock, DollarSign, CreditCard } from 'lucide-react';
+import { Search, Filter, Download, ArrowUpRight, CheckCircle, Clock, Wallet, CreditCard } from 'lucide-react';
 import clsx from 'clsx';
 import toast from 'react-hot-toast';
 
@@ -56,7 +56,7 @@ const TransactionLedger: React.FC = () => {
       <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center space-x-3">
           <div className="p-3 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-2xl shrink-0">
-            <DollarSign className="w-7 h-7" />
+            <Wallet className="w-7 h-7" />
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">

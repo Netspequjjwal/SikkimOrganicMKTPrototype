@@ -40,6 +40,13 @@ export interface WayBillDetails {
   driverContact?: string;
   trackingRef?: string;
   qualityInspected?: boolean;
+
+  // Organic Transaction Certificate (TC) Fields
+  tcNumber?: string;
+  tcIssuedDate?: string;
+  tcCertifyingBody?: string;
+  tcDocumentName?: string;
+  tcStatus?: 'Uploaded' | 'Verified' | 'Pending';
 }
 
 export interface TimelineEvent {

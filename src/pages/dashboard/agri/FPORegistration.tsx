@@ -28,7 +28,7 @@ const mockData: FPORegistrationData[] = [
     fpoName: 'Sikkim Organic Farmers Cooperative',
     registrationNo: 'REG-SKM-FPO-001',
     district: 'East Sikkim',
-    contactPerson: 'Karma Bhutia',
+    contactPerson: 'Ongmu Bhutia',
     mobile: '+91 98765 43210',
     email: 'contact@sikkimorganicfpo.com',
     noOfFarmers: 150,
@@ -204,7 +204,7 @@ const FPORegistration: React.FC = () => {
       {/* Main Page */}
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">FPO Registrations</h1>
+          <h1 className="text-2xl font-bold text-gray-900">FPO Approvals</h1>
           <p className="text-sm text-gray-500 mt-1">Review and approve Farmer Producer Organization registrations.</p>
         </div>
         <button className="bg-white border border-gray-300 shadow-sm text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-50 flex items-center">

@@ -8,20 +8,27 @@ interface DeliveryAddressFormProps {
   readOnly?: boolean;
 }
 
+const DEMO_ADDRESS: DeliveryAddress = {
+  recipientName: 'Naturals India Procurement',
+  companyName: 'Green Earth Organics Ltd.',
+  contactNumber: '9876543210',
+  altContactNumber: '03592-201234',
+  address: 'Plot 45, Organic Agro Park, Deorali',
+  landmark: 'Near Sikkim Milk Union Depot',
+  city: 'Gangtok',
+  state: 'Sikkim',
+  pinCode: '737102',
+  deliveryInstructions: 'Deliver to Central Organic Warehouse Gate 2, Unloading Bay A',
+  preferredTime: '09:00 AM - 05:00 PM',
+  specialHandling: 'Temperature controlled (15°C - 20°C), Moisture protected, Fragile packaging'
+};
+
 const DeliveryAddressForm: React.FC<DeliveryAddressFormProps> = ({ initialAddress, onSubmit, readOnly = false }) => {
-  const [formData, setFormData] = useState<DeliveryAddress>(initialAddress || {
-    recipientName: '',
-    companyName: '',
-    contactNumber: '',
-    altContactNumber: '',
-    address: '',
-    landmark: '',
-    city: '',
-    state: 'Sikkim',
-    pinCode: '',
-    deliveryInstructions: '',
-    preferredTime: '',
-    specialHandling: ''
+  const [formData, setFormData] = useState<DeliveryAddress>(() => {
+    if (initialAddress && initialAddress.recipientName) {
+      return { ...DEMO_ADDRESS, ...initialAddress };
+    }
+    return DEMO_ADDRESS;
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -82,9 +89,18 @@ const DeliveryAddressForm: React.FC<DeliveryAddressFormProps> = ({ initialAddres
 
   return (
     <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-      <h3 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
-        <MapPin className="w-5 h-5 text-primary mr-2" /> Finalize Delivery Destination
-      </h3>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 border-b border-gray-100 pb-4">
+        <h3 className="text-lg font-bold text-gray-900 flex items-center">
+          <MapPin className="w-5 h-5 text-primary mr-2" /> Finalize Delivery Destination
+        </h3>
+        <button
+          type="button"
+          onClick={() => setFormData(DEMO_ADDRESS)}
+          className="text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3 py-1.5 rounded-lg transition-colors self-start sm:self-auto"
+        >
+          ✨ Pre-fill Demo Details
+        </button>
+      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>

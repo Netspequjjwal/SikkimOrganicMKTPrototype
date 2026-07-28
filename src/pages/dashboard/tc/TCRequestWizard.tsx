@@ -17,9 +17,9 @@ export default function TCRequestWizard() {
 
   // Form State
   const [profile, setProfile] = useState({
-    name: user?.name || 'Sikkim Organic FPO',
+    name: 'Sikkim Organic Farmers Co-op',
     regNumber: 'FPO-SKM-2023-8902',
-    authRep: 'Karma Bhutia',
+    authRep: 'Ongmu Bhutia',
     contact: '+91 98765 43210',
     email: user?.email || 'contact@fpo.com',
     address: 'Namchi District Center',

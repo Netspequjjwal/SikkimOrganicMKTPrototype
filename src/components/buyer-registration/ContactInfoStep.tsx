@@ -1,6 +1,5 @@
 import React from 'react';
 import { BuyerRegistrationData } from '../../context/BuyerRegistrationContext';
-import { MapPin } from 'lucide-react';
 
 interface ContactInfoStepProps {
   data: Partial<BuyerRegistrationData>;
@@ -186,16 +185,6 @@ const ContactInfoStep: React.FC<ContactInfoStepProps> = ({ data, errors, onChang
               className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm p-2.5 border ${errors.pinCode ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-primary focus:border-primary'}`}
             />
             {errors.pinCode && <p className="mt-1 text-xs text-red-600">{errors.pinCode}</p>}
-          </div>
-        </div>
-
-        {/* Map Location Picker Mock */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Google Map Location</label>
-          <div className="w-full h-48 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors">
-            <MapPin className="w-8 h-8 text-gray-400 mb-2" />
-            <p className="text-sm font-medium text-gray-600">Click to pin exact location on map</p>
-            <p className="text-xs text-gray-400 mt-1">Improves logistics and verification accuracy</p>
           </div>
         </div>
       </div>

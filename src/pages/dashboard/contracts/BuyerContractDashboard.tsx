@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useContract, type DigitalContract } from '../../../context/ContractContext';
 import { useAuth } from '../../../context/AuthContext';
-import { FileSignature, Clock, CreditCard, Search, DollarSign, ExternalLink } from 'lucide-react';
+import { FileSignature, Clock, CreditCard, Search, IndianRupee, ExternalLink } from 'lucide-react';
 import clsx from 'clsx';
 
 const BuyerContractDashboard: React.FC = () => {
@@ -108,7 +108,7 @@ const BuyerContractDashboard: React.FC = () => {
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Total Committed</h3>
             <div className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center">
-              <DollarSign className="w-4 h-4 text-green-600" />
+              <IndianRupee className="w-4 h-4 text-green-600" />
             </div>
           </div>
           <p className="text-3xl font-bold text-gray-900">

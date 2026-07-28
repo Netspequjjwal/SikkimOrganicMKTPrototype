@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
-  LayoutDashboard, Users, FileText, Settings, LogOut, Bell, Menu, X, CheckCircle, BarChart3, Truck, Search, FilePlus, FileCheck, UploadCloud, ClipboardList, ShoppingCart, MessageSquare, FileSignature, Package, ShieldCheck, Shield, Key, UserCheck
+  LayoutDashboard, Users, FileText, Settings, LogOut, Bell, Menu, X, CheckCircle, BarChart3, Truck, Search, FilePlus, FileCheck, UploadCloud, ClipboardList, ShoppingCart, MessageSquare, FileSignature, Package, ShieldCheck, Shield, Key, UserCheck, Handshake
 } from 'lucide-react';
 import logoImg from '../assets/logo.png';
 import clsx from 'clsx';
@@ -27,9 +27,9 @@ const DashboardLayout: React.FC = () => {
           ...base, 
           { icon: ShieldCheck, label: 'Product Approvals', path: '/dashboard/agri/product-approvals' },
           { icon: FileCheck, label: 'Seller Approvals', path: '/dashboard/seller-approvals' }, 
-          { icon: Users, label: 'FPO Registration', path: '/dashboard/agri/fpo-registration' }, 
-          { icon: Package, label: 'ICS Product Listing', path: '/dashboard/agri/ics-products' }, 
-          { icon: FileText, label: 'FPO Product Listing', path: '/dashboard/agri/fpo-products' }, 
+          { icon: UserCheck, label: 'Buyer Approvals', path: '/dashboard/buyer-approvals' },
+          { icon: Users, label: 'FPO Approvals', path: '/dashboard/agri/fpo-registration' }, 
+          { icon: Handshake, label: 'Trade Negotiations', path: '/dashboard/agri/negotiations' },
           { icon: BarChart3, label: 'Analytics & Reports', path: '/dashboard/agri/analytics' }
         ];
       case 'ICS_PROVIDER':
@@ -52,7 +52,15 @@ const DashboardLayout: React.FC = () => {
           { icon: Settings, label: 'Settings', path: '/dashboard/seller-registration' }
         ];
       case 'BUYER':
-        return [...base, { icon: ShoppingCart, label: 'Marketplace', path: '/dashboard/marketplace' }, { icon: FileText, label: 'My Enquiries', path: '/dashboard/my-enquiries' }, { icon: FileSignature, label: 'Contracts', path: '/dashboard/buyer-contracts' }, { icon: Truck, label: 'My Orders', path: '/dashboard/buyer-orders' }, { icon: ClipboardList, label: 'Ledger', path: '/dashboard/payments/ledger' }];
+        return [
+          ...base, 
+          { icon: ShoppingCart, label: 'Marketplace', path: '/dashboard/marketplace' }, 
+          { icon: FileText, label: 'My Enquiries', path: '/dashboard/my-enquiries' }, 
+          { icon: FileSignature, label: 'Contracts', path: '/dashboard/buyer-contracts' }, 
+          { icon: Truck, label: 'My Orders', path: '/dashboard/buyer-orders' }, 
+          { icon: ClipboardList, label: 'Ledger', path: '/dashboard/payments/ledger' },
+          { icon: Settings, label: 'Buyer Organization Registration', path: '/dashboard/buyer-registration' }
+        ];
       default:
         return base;
     }

@@ -41,7 +41,7 @@ const initialData: YieldSurvey[] = [
     farmerCount: 145,
     certFileName: 'Scoped_Cert_SOA_2026.pdf',
     excelData: [
-      { farmerId: 'F-1001', name: 'Karma Bhutia', village: 'Mangan', area: 2.5, yield: 1.2 },
+      { farmerId: 'F-1001', name: 'Ongmu Bhutia', village: 'Mangan', area: 2.5, yield: 1.2 },
       { farmerId: 'F-1002', name: 'Sonam Lepcha', village: 'Dzongu', area: 1.8, yield: 0.8 },
       { farmerId: 'F-1003', name: 'Passang Sherpa', village: 'Mangan', area: 3.2, yield: 1.5 },
     ],

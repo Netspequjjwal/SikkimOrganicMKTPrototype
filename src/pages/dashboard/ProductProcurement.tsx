@@ -111,7 +111,7 @@ const ProductProcurement: React.FC = () => {
     if (sp.hasPhase2) {
       return <span className="bg-green-100 text-green-800 text-xs font-bold px-2.5 py-1 rounded-md flex items-center border border-green-200"><CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Open for Sale (Actual)</span>;
     }
-    return <span className="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-1 rounded-md flex items-center border border-blue-200"><Clock className="w-3.5 h-3.5 mr-1" /> Pre-Booking (Estimated)</span>;
+    return <span className="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-1 rounded-md flex items-center border border-blue-200"><Clock className="w-3.5 h-3.5 mr-1" /> Pre-Booking</span>;
   };
 
   const getCropImage = (name: string) => {
@@ -467,7 +467,7 @@ const ProductProcurement: React.FC = () => {
                           else navigate('/dashboard/buyer-registration');
                         }}
                       >
-                        {isApproved ? 'Send Enquiry' : 'Register to Enquire'}
+                        {isApproved ? 'Send Buying Intent' : 'Register to Send Buying Intent'}
                         <ArrowRight className="w-3.5 h-3.5" />
                       </button>
                     </div>
@@ -510,9 +510,9 @@ const ProductProcurement: React.FC = () => {
                               navigate('/dashboard/buyer-registration');
                             }
                           }}
-                          title={!isApproved ? "Register to send enquiries" : ""}
+                          title={!isApproved ? "Register to send buying intent" : ""}
                         >
-                          {isApproved ? 'Enquire' : 'Register'} <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+                          {isApproved ? 'Send Buying Intent' : 'Register'} <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
                         </button>
                       </td>
                     </tr>
@@ -553,11 +553,11 @@ const ProductProcurement: React.FC = () => {
                   navigate('/dashboard/buyer-registration');
                 }
               }}
-              title={!isApproved ? "Register to send enquiries" : ""}
+              title={!isApproved ? "Register to send buying intent" : ""}
             >
               {isApproved 
-                ? `Broadcast Enquiry to ${selectedSuppliers.size} Selected ${selectedSuppliers.size === 1 ? 'Supplier' : 'Suppliers'}` 
-                : 'Register to Broadcast Enquiry'} <ArrowRight className="w-5 h-5 ml-2" />
+                ? `Send Buying Intent to ${selectedSuppliers.size} Selected ${selectedSuppliers.size === 1 ? 'Supplier' : 'Suppliers'}` 
+                : 'Register to Send Buying Intent'} <ArrowRight className="w-5 h-5 ml-2" />
             </button>
           </div>
         </div>
@@ -570,7 +570,7 @@ const ProductProcurement: React.FC = () => {
           <div className="fixed inset-y-0 right-0 max-w-xl w-full flex bg-white shadow-2xl flex-col animate-slideLeft">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
               <h2 className="text-lg font-bold text-gray-900">
-                {enquiryMode === 'selected' && selectedSuppliers.size > 1 ? 'Broadcast Requirement (RFQ)' : 'Send Enquiry'}
+                {enquiryMode === 'selected' && selectedSuppliers.size > 1 ? 'Broadcast Enquiry (RFQ)' : 'Send Enquiry'}
               </h2>
               <button onClick={() => setEnquiryMode(null)} className="text-gray-400 hover:text-gray-500 text-2xl leading-none">&times;</button>
             </div>
@@ -582,7 +582,7 @@ const ProductProcurement: React.FC = () => {
                     <div>
                       <p className="text-sm text-blue-900 font-bold mb-1.5 uppercase tracking-wide">Broadcast Enquiry Mode</p>
                       <p className="text-sm text-blue-800 leading-relaxed">
-                        You are initiating a competitive procurement process. Your requirements will be sent simultaneously to <strong>{selectedSuppliers.size}</strong> selected suppliers for <strong>{cropId}</strong>. You can compare their quotations side-by-side in your dashboard.
+                        You are initiating a commercial procurement process. Your enquiry will be sent simultaneously to <strong>{selectedSuppliers.size}</strong> selected suppliers for <strong>{cropId}</strong>. You can compare their quotations side-by-side in your dashboard.
                       </p>
                     </div>
                   </div>
@@ -603,7 +603,7 @@ const ProductProcurement: React.FC = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Procurement Type</label>
                   <select className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm p-2.5 border" value={enqForm.type} onChange={e => setEnqForm({ ...enqForm, type: e.target.value as any })}>
-                    <option value="Pre-Booking">Pre-Booking (Harvest Q3)</option>
+                    <option value="Pre-Booking">Pre-Booking</option>
                     <option value="Purchase">Immediate Purchase</option>
                   </select>
                 </div>
@@ -625,7 +625,7 @@ const ProductProcurement: React.FC = () => {
                   <input type="date" value={enqForm.date} onChange={e => setEnqForm({ ...enqForm, date: e.target.value })} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm p-2.5 border" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Buyer Notes</label>
+                  <label className="block text-sm font-medium text-gray-700">Buyer Notes & Quality Specifications</label>
                   <textarea rows={4} value={enqForm.notes} onChange={e => setEnqForm({ ...enqForm, notes: e.target.value })} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm p-2.5 border" placeholder="Specific packaging or certification requirements..."></textarea>
                 </div>
               </div>
@@ -676,7 +676,7 @@ const ProductProcurement: React.FC = () => {
                   setSelectedSuppliers(new Set());
                 }}
               >
-                {isSending ? 'Sending Enquiry...' : (enquiryMode === 'selected' && selectedSuppliers.size > 1 ? 'Submit Broadcast RFQ' : 'Submit Direct Enquiry')}
+                {isSending ? 'Sending Enquiry...' : (enquiryMode === 'selected' && selectedSuppliers.size > 1 ? 'Submit Broadcast Enquiry' : 'Send Enquiry')}
               </button>
             </div>
           </div>

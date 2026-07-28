@@ -21,6 +21,7 @@ const NegotiationWorkspace: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'CHAT' | 'DETAILS'>('CHAT');
   const [draftMessage, setDraftMessage] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showUpdateIntentModal, setShowUpdateIntentModal] = useState(false);
   const [quoteForm, setQuoteForm] = useState({
     price: '',
     total: '',
@@ -29,6 +30,13 @@ const NegotiationWorkspace: React.FC = () => {
 
   const enquiry = enquiries.find(e => e.id === enquiryId);
   const isBuyer = user?.role === 'BUYER';
+
+  const [intentForm, setIntentForm] = useState({
+    quantity: enquiry?.quantityRequested || 0,
+    uom: enquiry?.uom || 'MT',
+    deliveryDate: enquiry?.deliveryDate || '',
+    notes: ''
+  });
 
   if (!enquiry) {
     return <div className="p-10 text-center">Enquiry not found.</div>;
@@ -120,9 +128,25 @@ const NegotiationWorkspace: React.FC = () => {
     }
   };
 
+  const handleUpdateIntent = () => {
+    if (!intentForm.quantity || !intentForm.deliveryDate) {
+      toast.error("Please fill quantity and delivery date.");
+      return;
+    }
+
+    addMessage(enquiry.id, {
+      sender: 'Buyer',
+      text: `Updated Commercial Buying Intent:\n- Quantity: ${intentForm.quantity} ${intentForm.uom}\n- Expected Delivery: ${intentForm.deliveryDate}${intentForm.notes ? `\n- Notes: ${intentForm.notes}` : ''}`
+    });
+
+    toast.success("Buying Intent updated and sent to seller!");
+    setShowUpdateIntentModal(false);
+  };
+
   const getStatusBadge = (status: string) => {
     switch(status) {
-      case 'New Enquiry': return <span className="bg-blue-100 text-blue-800 text-[10px] px-2.5 py-1 rounded-full font-extrabold border border-blue-300 uppercase">{status}</span>;
+      case 'New Enquiry': return <span className="bg-blue-100 text-blue-800 text-[10px] px-2.5 py-1 rounded-full font-extrabold border border-blue-300 uppercase">Buying Intent Received</span>;
+      case 'Acknowledged': return <span className="bg-blue-100 text-blue-800 text-[10px] px-2.5 py-1 rounded-full font-extrabold border border-blue-300 uppercase">Acknowledged</span>;
       case 'Quotation Submitted': return <span className="bg-purple-100 text-purple-800 text-[10px] px-2.5 py-1 rounded-full font-extrabold border border-purple-300 uppercase">{status}</span>;
       case 'Converted to Digital Contract': return <span className="bg-teal-100 text-teal-800 text-[10px] px-2.5 py-1 rounded-full font-extrabold border border-teal-300 uppercase flex items-center gap-1"><FileSignature className="w-3 h-3"/> Contract Pending</span>;
       default: return <span className="bg-slate-100 text-slate-800 text-[10px] px-2.5 py-1 rounded-full font-extrabold border border-slate-200 uppercase">{status}</span>;
@@ -150,24 +174,32 @@ const NegotiationWorkspace: React.FC = () => {
         </div>
 
         {/* Quick Primary Actions Bar */}
-        <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+        <div className="flex items-center gap-2 self-end sm:self-center shrink-0 flex-wrap">
           {!isBuyer && enquiry.status !== 'Converted to Digital Contract' && (
             <button 
               onClick={() => setShowUploadModal(true)} 
               className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5"
             >
               <FileText className="w-4 h-4" /> 
-              {enquiry.status === 'Quotation Submitted' ? 'Revise Quote' : 'Send Quotation'}
+              {enquiry.status === 'Quotation Submitted' ? 'Revise Quotation' : 'Prepare & Send Quotation'}
             </button>
           )}
 
-          {isBuyer && enquiry.status === 'Quotation Submitted' && (
-            <button 
-              onClick={handleAcceptContract} 
-              className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5"
-            >
-              <CheckCircle2 className="w-4 h-4" /> Send Purchase Intent
-            </button>
+          {isBuyer && enquiry.status !== 'Converted to Digital Contract' && (
+            <>
+              <button 
+                onClick={() => setShowUpdateIntentModal(true)} 
+                className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all flex items-center gap-1.5 border border-slate-200"
+              >
+                <FileText className="w-4 h-4 text-slate-500" /> Update Buying Intent
+              </button>
+              <button 
+                onClick={handleAcceptContract} 
+                className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5"
+              >
+                <CheckCircle2 className="w-4 h-4" /> Send Purchase Intent
+              </button>
+            </>
           )}
 
           {!isBuyer && enquiry.status === 'Converted to Digital Contract' && (
@@ -214,14 +246,14 @@ const NegotiationWorkspace: React.FC = () => {
           {/* Status Alert */}
           <div className="bg-blue-50 border border-blue-200 p-3.5 rounded-xl space-y-1 text-xs">
             <span className="font-extrabold text-blue-900 uppercase text-[10px] flex items-center">
-              <AlertCircle className="w-3.5 h-3.5 text-blue-600 mr-1" /> Negotiation Status Overview
+              <AlertCircle className="w-3.5 h-3.5 text-blue-600 mr-1" /> Commercial Buying Intent Status
             </span>
             <p className="text-blue-800 text-[11px] leading-relaxed">
-              {enquiry.status === 'New Enquiry' && !isBuyer && "A buyer has submitted a new enquiry. Please review specs and upload your formal quotation."}
-              {enquiry.status === 'New Enquiry' && isBuyer && "Waiting for the supplier to acknowledge and upload a formal quotation."}
-              {enquiry.status === 'Quotation Submitted' && isBuyer && "The supplier has submitted a quotation. Accept it to generate a digital contract or send counter-messages."}
-              {enquiry.status === 'Quotation Submitted' && !isBuyer && "Your quotation has been submitted. Waiting for buyer's purchase intent."}
-              {enquiry.status === 'Converted to Digital Contract' && "Negotiation concluded! Move forward to generate & execute the digital contract."}
+              {enquiry.status === 'New Enquiry' && !isBuyer && "Buying Intent Received! The buyer has submitted their procurement requirement. Review the specs and click 'Prepare & Send Quotation'."}
+              {enquiry.status === 'New Enquiry' && isBuyer && "Buying Intent Sent! Waiting for the seller to review specs and submit their formal price quotation."}
+              {enquiry.status === 'Quotation Submitted' && isBuyer && "The seller has submitted a price quotation. Review details and click 'Send Purchase Intent' to proceed to contract generation."}
+              {enquiry.status === 'Quotation Submitted' && !isBuyer && "Quotation Submitted! Waiting for buyer's purchase intent confirmation."}
+              {enquiry.status === 'Converted to Digital Contract' && "Purchase Intent Confirmed! Proceeding to digital contract generation & legal execution."}
             </p>
           </div>
 
@@ -276,7 +308,7 @@ const NegotiationWorkspace: React.FC = () => {
           </div>
 
           {/* Bottom Action CTA in details sidebar */}
-          <div className="pt-2">
+          <div className="pt-2 space-y-2">
             {!isBuyer && enquiry.status !== 'Converted to Digital Contract' && (
               <button 
                 onClick={() => setShowUploadModal(true)} 
@@ -287,13 +319,21 @@ const NegotiationWorkspace: React.FC = () => {
               </button>
             )}
 
-            {isBuyer && enquiry.status === 'Quotation Submitted' && (
-              <button 
-                onClick={handleAcceptContract} 
-                className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold py-2.5 px-4 rounded-xl shadow-xs transition-all text-xs flex items-center justify-center gap-1.5"
-              >
-                <CheckCircle2 className="w-4 h-4" /> Send Purchase Intent
-              </button>
+            {isBuyer && enquiry.status !== 'Converted to Digital Contract' && (
+              <>
+                <button 
+                  onClick={handleAcceptContract} 
+                  className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold py-2.5 px-4 rounded-xl shadow-xs transition-all text-xs flex items-center justify-center gap-1.5"
+                >
+                  <CheckCircle2 className="w-4 h-4" /> Send Purchase Intent
+                </button>
+                <button 
+                  onClick={() => setShowUpdateIntentModal(true)} 
+                  className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 px-4 rounded-xl transition-all text-xs flex items-center justify-center gap-1.5 border border-slate-200"
+                >
+                  <FileText className="w-4 h-4 text-slate-500" /> Update Buying Intent
+                </button>
+              </>
             )}
 
             {!isBuyer && enquiry.status === 'Converted to Digital Contract' && (
@@ -513,6 +553,69 @@ const NegotiationWorkspace: React.FC = () => {
                 className="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold rounded-xl transition-all shadow-xs disabled:opacity-40"
               >
                 Send Quotation
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Update Buying Intent Modal */}
+      {showUpdateIntentModal && (
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden border border-slate-200 space-y-4">
+            <div className="bg-emerald-800 px-6 py-4 flex items-center justify-between text-white">
+              <h3 className="font-extrabold text-sm flex items-center">
+                <FileText className="w-4 h-4 mr-2" /> Update Commercial Buying Intent
+              </h3>
+              <button onClick={() => setShowUpdateIntentModal(false)} className="text-emerald-200 hover:text-white transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-4 text-xs">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Requested Quantity ({intentForm.uom}) *</label>
+                <input 
+                  type="number" 
+                  value={intentForm.quantity}
+                  onChange={(e) => setIntentForm({...intentForm, quantity: Number(e.target.value)})}
+                  className="w-full p-2.5 border border-slate-300 rounded-xl font-bold text-slate-900"
+                />
+              </div>
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Expected Delivery Date *</label>
+                <input 
+                  type="date" 
+                  value={intentForm.deliveryDate}
+                  onChange={(e) => setIntentForm({...intentForm, deliveryDate: e.target.value})}
+                  className="w-full p-2.5 border border-slate-300 rounded-xl font-bold text-slate-900"
+                />
+              </div>
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Additional Notes / Quality Specs</label>
+                <textarea 
+                  rows={3}
+                  value={intentForm.notes}
+                  onChange={(e) => setIntentForm({...intentForm, notes: e.target.value})}
+                  className="w-full p-2.5 border border-slate-300 rounded-xl font-semibold text-slate-900"
+                  placeholder="e.g., Update moisture requirements or delivery terms..."
+                />
+              </div>
+            </div>
+            
+            <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3 text-xs">
+              <button 
+                onClick={() => setShowUpdateIntentModal(false)}
+                className="px-4 py-2 text-slate-600 font-bold hover:bg-slate-200 rounded-xl transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleUpdateIntent}
+                disabled={!intentForm.quantity || !intentForm.deliveryDate}
+                className="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold rounded-xl transition-all shadow-xs disabled:opacity-40"
+              >
+                Submit Updated Intent
               </button>
             </div>
           </div>

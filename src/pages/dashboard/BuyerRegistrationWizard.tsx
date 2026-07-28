@@ -202,7 +202,7 @@ const BuyerRegistrationWizard: React.FC = () => {
         <div className="px-6 py-6 border-b border-gray-200 bg-gray-50/50">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Buyer Registration</h1>
+              <h1 className="text-2xl font-bold text-gray-900">Buyer Organization Registration</h1>
               <p className="mt-1 text-sm text-gray-500">Complete your profile to access the organic marketplace</p>
             </div>
             <button 

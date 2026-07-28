@@ -42,6 +42,7 @@ import NegotiationWorkspace from './pages/dashboard/NegotiationWorkspace';
 import CreateProductListing from './pages/dashboard/products/CreateProductListing';
 import SellerProductDashboard from './pages/dashboard/products/SellerProductDashboard';
 import ProductListingApprovals from './pages/dashboard/agri/ProductListingApprovals';
+import AgriNegotiations from './pages/dashboard/agri/AgriNegotiations';
 
 // Contract & Payment Components
 import SPContractDashboard from './pages/dashboard/contracts/SPContractDashboard';
@@ -155,6 +156,7 @@ function App() {
                                   <Route path="agri/ics-products" element={<ICSProductListing />} />
                                   <Route path="agri/fpo-products" element={<FPOProductListing />} />
                                   <Route path="agri/analytics" element={<AnalyticsReports />} />
+                                  <Route path="agri/negotiations" element={<AgriNegotiations />} />
                                   
                                   {/* Negotiation & Procurement */}
                                   <Route path="marketplace" element={<Marketplace />} />

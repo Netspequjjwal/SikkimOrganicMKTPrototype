@@ -170,7 +170,7 @@ const BuyerDashboard: React.FC = () => {
               </div>
               <div>
                 <h2 className="text-xl font-bold text-gray-900">
-                  {registrationStatus === 'UNREGISTERED' ? 'Buyer Registration Pending' : 'Registration Under Review'}
+                  {registrationStatus === 'UNREGISTERED' ? 'Buyer Organization Registration Pending' : 'Registration Under Review'}
                 </h2>
                 <p className="text-sm text-gray-600 mt-1">
                   {registrationStatus === 'UNREGISTERED' 

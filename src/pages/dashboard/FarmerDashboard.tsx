@@ -14,7 +14,7 @@ const FarmerDashboard: React.FC = () => {
     <div className="max-w-7xl mx-auto space-y-6">
       <div className="flex justify-between items-center bg-white p-6 rounded-xl border border-green-200 shadow-sm relative overflow-hidden">
         <div className="relative z-10">
-          <h1 className="text-2xl font-bold text-gray-900">Welcome back, Karma!</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Welcome back, Ongmu!</h1>
           <p className="text-sm text-gray-600 mt-1 flex items-center">
             <CheckCircle2 className="w-4 h-4 text-green-500 mr-1" /> Profile 100% Complete & Verified
           </p>

@@ -13,15 +13,25 @@ const WayBillDocument: React.FC<Props> = ({ order, onGenerate }) => {
   const isSeller = user?.role === 'ICS_PROVIDER';
   const isDraft = !order.wayBillDetails?.wayBillNumber;
 
+  const DEMO_WAYBILL: Partial<WayBillDetails> = {
+    dispatchLocation: order.supplierName + ' Central Warehouse, Gangtok',
+    logisticsPartnerName: 'Sikkim Express Logistics Services',
+    vehicleNumber: 'SK-01-AB-4829',
+    driverContact: '9876512345 (Ramesh Sharma)',
+    trackingRef: 'SE-LOG-2026-9941',
+    expectedDeliveryDate: '2026-08-05',
+    transportInstructions: 'Maintain temperature controlled environment. Handle organic produce with care.',
+    qualityInspected: true,
+    tcNumber: '',
+    tcIssuedDate: '',
+    tcCertifyingBody: '',
+    tcDocumentName: '',
+    tcStatus: 'Pending'
+  };
+
   const [isEditing, setIsEditing] = useState(isDraft && isSeller);
-  const [formData, setFormData] = useState<Partial<WayBillDetails>>(order.wayBillDetails || {
-    dispatchLocation: order.supplierName,
-    logisticsPartnerName: '',
-    vehicleNumber: '',
-    driverContact: '',
-    trackingRef: '',
-    transportInstructions: '',
-    qualityInspected: false
+  const [formData, setFormData] = useState<Partial<WayBillDetails>>(() => {
+    return { ...DEMO_WAYBILL, ...(order.wayBillDetails || {}) };
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -129,6 +139,112 @@ const WayBillDocument: React.FC<Props> = ({ order, onGenerate }) => {
                 </tr>
               </tbody>
             </table>
+          </div>
+
+          {/* MANDATORY TRANSACTION CERTIFICATE (TC) ATTACHMENT SECTION */}
+          <div className={`mb-8 border rounded-xl p-5 shadow-xs ${formData.tcNumber && formData.tcDocumentName ? 'bg-emerald-50/70 border-emerald-300' : 'bg-amber-50/70 border-amber-300'}`}>
+            <div className="flex items-center justify-between mb-3 border-b border-gray-200 pb-2">
+              <h4 className="font-extrabold text-gray-900 text-sm uppercase tracking-wide flex items-center">
+                <ShieldCheck className={`w-5 h-5 mr-2 ${formData.tcNumber && formData.tcDocumentName ? 'text-emerald-700' : 'text-amber-700'}`} /> Organic Transaction Certificate (TC)
+              </h4>
+              <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ${formData.tcNumber && formData.tcDocumentName ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-amber-100 text-amber-900 border-amber-300'}`}>
+                {formData.tcNumber && formData.tcDocumentName ? 'Verified & Attached' : 'Pending Seller Upload'}
+              </span>
+            </div>
+
+            {isEditing ? (
+              <div className="space-y-4 text-xs">
+                <div className="p-3 bg-white border border-emerald-200 rounded-lg text-emerald-900 font-semibold mb-2 flex items-center">
+                  <FileText className="w-4 h-4 text-emerald-700 mr-2 shrink-0" />
+                  Seller Upload Requirement: Please provide the official TC Number and upload the Transaction Certificate PDF issued by the Certifying Body.
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-gray-700 font-bold mb-1">Transaction Certificate (TC) Number *</label>
+                    <input 
+                      type="text" 
+                      name="tcNumber" 
+                      value={formData.tcNumber || ''} 
+                      onChange={handleChange} 
+                      placeholder="e.g. TC/2026/NPOP/008492"
+                      className="w-full p-2 border border-gray-300 rounded-lg bg-white font-mono font-bold focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-bold mb-1">Certifying Agency *</label>
+                    <input 
+                      type="text" 
+                      name="tcCertifyingBody" 
+                      value={formData.tcCertifyingBody || ''} 
+                      onChange={handleChange} 
+                      placeholder="e.g. Sikkim State Organic Certification Agency (SSOCA)"
+                      className="w-full p-2 border border-gray-300 rounded-lg bg-white font-medium focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-bold mb-1">Issue Date</label>
+                    <input 
+                      type="date" 
+                      name="tcIssuedDate" 
+                      value={formData.tcIssuedDate || ''} 
+                      onChange={handleChange} 
+                      className="w-full p-2 border border-gray-300 rounded-lg bg-white outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-bold mb-1">Upload TC PDF Document *</label>
+                    <div className="flex items-center gap-2">
+                      <input 
+                        type="file" 
+                        accept=".pdf" 
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            setFormData(prev => ({ ...prev, tcDocumentName: e.target.files![0].name, tcStatus: 'Uploaded' }));
+                          }
+                        }}
+                        className="w-full text-xs text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-700 file:text-white hover:file:bg-emerald-800 cursor-pointer"
+                      />
+                    </div>
+                    {formData.tcDocumentName && (
+                      <p className="text-[11px] text-emerald-700 font-bold mt-1">✓ Attached: {formData.tcDocumentName}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : formData.tcNumber && formData.tcDocumentName ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                <div>
+                  <span className="text-gray-500 font-semibold block text-[10px] uppercase">TC Ref Number</span>
+                  <strong className="text-gray-900 font-mono text-sm block mt-0.5">{formData.tcNumber}</strong>
+                </div>
+                <div>
+                  <span className="text-gray-500 font-semibold block text-[10px] uppercase">Certifying Body</span>
+                  <strong className="text-gray-900 text-xs block mt-0.5">{formData.tcCertifyingBody || 'Sikkim Organic Certification Agency'}</strong>
+                </div>
+                <div className="flex items-center justify-between md:justify-end">
+                  <div>
+                    <span className="text-gray-500 font-semibold block text-[10px] uppercase">Attached Document</span>
+                    <span className="text-gray-900 font-medium text-xs block truncate max-w-[160px]">{formData.tcDocumentName}</span>
+                  </div>
+                  <button 
+                    onClick={() => alert(`Downloading official Transaction Certificate PDF (${formData.tcNumber})...`)}
+                    className="ml-3 p-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg transition-colors shadow-xs shrink-0 flex items-center text-[11px] font-bold"
+                    title="Download Official TC Document"
+                  >
+                    <Download className="w-3.5 h-3.5 mr-1" /> TC PDF
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="text-xs text-amber-900 font-medium bg-amber-100/60 p-3.5 rounded-lg flex items-center justify-between">
+                <span>⚠️ <strong>Transaction Certificate (TC) Not Yet Uploaded:</strong> The seller must edit this document and upload the TC PDF before finalizing dispatch.</span>
+                {isSeller && (
+                  <button onClick={() => setIsEditing(true)} className="ml-3 text-xs font-extrabold bg-amber-700 text-white px-3 py-1.5 rounded-lg hover:bg-amber-800 transition-colors shrink-0">
+                    Upload TC Now
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="mb-8 bg-gray-50 border border-gray-200 p-4">

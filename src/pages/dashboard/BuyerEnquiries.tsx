@@ -136,7 +136,7 @@ const BuyerEnquiries: React.FC = () => {
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
         <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
           <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-700 flex items-center">
-            <MessageSquare className="w-4 h-4 text-emerald-600 mr-2" /> B2B Buyer Procurement Enquiries Ledger
+            <MessageSquare className="w-4 h-4 text-emerald-600 mr-2" /> B2B Commercial Buying Intent & Quotation Pipeline
           </h3>
           <span className="text-[11px] font-semibold text-slate-500">Showing {filteredEnquiries.length} records</span>
         </div>
@@ -145,9 +145,9 @@ const BuyerEnquiries: React.FC = () => {
           <table className="min-w-full divide-y divide-slate-200 text-left">
             <thead className="bg-slate-50">
               <tr>
-                <th className="px-5 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Enquiry ID & Date</th>
+                <th className="px-5 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Intent Ref & Date</th>
                 <th className="px-5 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Buyer Entity</th>
-                <th className="px-5 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Produce & Requested Qty</th>
+                <th className="px-5 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Produce & Buying Intent Specs</th>
                 <th className="px-5 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Pipeline Status</th>
                 <th className="px-5 py-3 text-right text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Action</th>
               </tr>
@@ -156,7 +156,7 @@ const BuyerEnquiries: React.FC = () => {
               {filteredEnquiries.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="text-center py-10 text-slate-400 italic">
-                    No buyer enquiries found matching your search.
+                    No buyer intents found matching your search.
                   </td>
                 </tr>
               ) : (
@@ -188,7 +188,7 @@ const BuyerEnquiries: React.FC = () => {
 
                     <td className="px-5 py-3.5 whitespace-nowrap">
                       <span className={clsx("px-2.5 py-1 text-[10px] font-extrabold rounded-full border", getStatusColor(enq.status))}>
-                        {enq.status}
+                        {enq.status === 'New Enquiry' ? 'Buying Intent Received' : enq.status}
                       </span>
                     </td>
 
@@ -197,7 +197,7 @@ const BuyerEnquiries: React.FC = () => {
                         onClick={() => navigate(`/dashboard/negotiation/${enq.id}`)}
                         className="px-3.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold rounded-xl text-xs shadow-xs transition-all inline-flex items-center gap-1"
                       >
-                        {enq.status === 'New Enquiry' ? 'Respond' : 'Open Workspace'} <ArrowRight className="w-3.5 h-3.5" />
+                        {enq.status === 'New Enquiry' ? 'Prepare Quotation' : 'Open Workspace'} <ArrowRight className="w-3.5 h-3.5" />
                       </button>
                     </td>
                   </tr>
