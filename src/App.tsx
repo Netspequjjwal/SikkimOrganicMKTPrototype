@@ -3,8 +3,10 @@ import MainLayout from './layouts/MainLayout';
 import DashboardLayout from './layouts/DashboardLayout';
 import Home from './pages/Home';
 import Login from './pages/Login';
+import AccessDenied from './pages/AccessDenied';
 import { LanguageProvider } from './context/LanguageContext';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext';
+import { RBACProvider, useRBAC } from './context/RBACContext';
 import { SellerRegistrationProvider } from './context/SellerRegistrationContext';
 import { YieldSurveyProvider } from './context/YieldSurveyContext';
 import { NegotiationProvider } from './context/NegotiationContext';
@@ -14,12 +16,22 @@ import { ActionCenterProvider } from './context/ActionCenterContext';
 import { TCProviderWrapper } from './context/TCContext';
 import { BuyerRegistrationProvider } from './context/BuyerRegistrationContext';
 import { ProductListingProvider } from './context/ProductListingContext';
+import { NotificationProvider } from './context/NotificationContext';
+import NotificationOverlay from './components/common/NotificationOverlay';
 import { Toaster } from 'react-hot-toast';
 
+// Dashboards
 import AgriDeptDashboard from './pages/dashboard/AgriDeptDashboard';
 import ICSDashboard from './pages/dashboard/ICSDashboard';
 import FarmerDashboard from './pages/dashboard/FarmerDashboard';
 import BuyerDashboard from './pages/dashboard/BuyerDashboard';
+
+// RBAC Consoles
+import { PermissionConsole } from './pages/dashboard/admin/PermissionConsole';
+import { UserManagementConsole } from './pages/dashboard/admin/UserManagementConsole';
+import { SecurityAuditCenter } from './pages/dashboard/security/SecurityAuditCenter';
+
+// Feature Pages
 import BuyerRegistrationWizard from './pages/dashboard/BuyerRegistrationWizard';
 import BuyerApprovals from './pages/dashboard/BuyerApprovals';
 import BuyerApplicationDetails from './pages/dashboard/BuyerApplicationDetails';
@@ -60,10 +72,6 @@ import SPOrderDashboard from './pages/dashboard/orders/SPOrderDashboard';
 import OrderRepository from './pages/dashboard/orders/OrderRepository';
 import OrderWorkspace from './pages/dashboard/orders/OrderWorkspace';
 
-// Notification Context
-import { NotificationProvider } from './context/NotificationContext';
-import NotificationOverlay from './components/common/NotificationOverlay';
-
 // TC Services (CaaS)
 import TCMarketplace from './pages/dashboard/tc/TCMarketplace';
 import TCProviderProfile from './pages/dashboard/tc/TCProviderProfile';
@@ -85,21 +93,33 @@ import AnalyticsReports from './pages/dashboard/agri/AnalyticsReports';
 import FPORegistration from './pages/dashboard/agri/FPORegistration';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated } = useAuth();
-  if (!isAuthenticated) {
+  const { currentUser } = useRBAC();
+  if (!currentUser) {
     return <Navigate to="/login" replace />;
   }
   return <>{children}</>;
 };
 
 const DashboardRouter = () => {
-  const { user } = useAuth();
-  switch (user?.role) {
-    case 'AGRI_DEPT': return <AgriDeptDashboard />;
-    case 'ICS_PROVIDER': return <ICSDashboard />;
-    case 'FPO_FARMER': return <FarmerDashboard />;
-    case 'BUYER': return <BuyerDashboard />;
-    default: return <Navigate to="/login" replace />;
+  const { activeRole } = useRBAC();
+
+  switch (activeRole) {
+    case 'SUPER_ADMIN':
+      return <PermissionConsole />;
+    case 'DEPT_ADMIN':
+      return <AgriDeptDashboard />;
+    case 'SOFDA_ADMIN':
+      return <AgriDeptDashboard />;
+    case 'SUPPORT_USER':
+      return <UserManagementConsole />;
+    case 'SELLER_USER':
+      return <ICSDashboard />;
+    case 'BUYER_USER':
+      return <BuyerDashboard />;
+    case 'GUEST_USER':
+      return <Marketplace />;
+    default:
+      return <Marketplace />;
   }
 };
 
@@ -107,106 +127,118 @@ function App() {
   return (
     <LanguageProvider>
       <NotificationProvider>
-        <AuthProvider>
-          <SellerRegistrationProvider>
-            <ProductListingProvider>
-              <YieldSurveyProvider>
-                <TCProviderWrapper>
-                  <NegotiationProvider>
-                    <ContractProvider>
-                      <OrderProvider>
-                        <BuyerRegistrationProvider>
-                          <Router>
-                            <Toaster position="top-right" />
-                            <NotificationOverlay />
-                            <ActionCenterProvider>
-                              <Routes>
-                                <Route path="/" element={<MainLayout />}>
-                                  <Route index element={<Home />} />
-                                  <Route path="login" element={<Login />} />
-                                </Route>
+        <RBACProvider>
+          <AuthProvider>
+            <SellerRegistrationProvider>
+              <ProductListingProvider>
+                <YieldSurveyProvider>
+                  <TCProviderWrapper>
+                    <NegotiationProvider>
+                      <ContractProvider>
+                        <OrderProvider>
+                          <BuyerRegistrationProvider>
+                            <Router>
+                              <Toaster position="top-right" />
+                              <NotificationOverlay />
+                              <ActionCenterProvider>
+                                <Routes>
+                                  <Route path="/" element={<MainLayout />}>
+                                    <Route index element={<Home />} />
+                                    <Route path="login" element={<Login />} />
+                                    <Route path="access-denied" element={<AccessDenied />} />
+                                  </Route>
 
-                                <Route path="/dashboard" element={
-                                  <ProtectedRoute>
-                                    <DashboardLayout />
-                                  </ProtectedRoute>
-                                }>
-                                  <Route index element={<DashboardRouter />} />
-                                  
-                                  {/* Common Dashboards */}
-                                  <Route path="buyer-registration" element={<BuyerRegistrationWizard />} />
-                                  <Route path="seller-registration" element={<SellerRegistrationWizard />} />
-                                  <Route path="registration-success" element={<RegistrationSuccess />} />
-                                  <Route path="certificate-renewal" element={<CertificateRenewalWizard />} />
-                                  <Route path="seller-approvals" element={<SellerApprovals />} />
-                                  <Route path="buyer-approvals" element={<BuyerApprovals />} />
-                                  <Route path="buyer-approvals/:id" element={<BuyerApplicationDetails />} />
-                                  <Route path="buyer-profile/:id" element={<BuyerTrustProfile />} />
-                                  <Route path="survey" element={<UploadSurveyWizard />} />
-                                  <Route path="survey-success" element={<SurveySuccess />} />
-                                  <Route path="survey-approvals" element={<SurveyApprovals />} />
+                                  <Route
+                                    path="/dashboard"
+                                    element={
+                                      <ProtectedRoute>
+                                        <DashboardLayout />
+                                      </ProtectedRoute>
+                                    }
+                                  >
+                                    <Route index element={<DashboardRouter />} />
 
-                                  {/* Smart Product Listing & Inventory Lifecycle Routes */}
-                                  <Route path="products/create" element={<CreateProductListing />} />
-                                  <Route path="products/manage" element={<SellerProductDashboard />} />
-                                  <Route path="agri/product-approvals" element={<ProductListingApprovals />} />
-                                  
-                                  {/* Agri Dept Additions */}
-                                  <Route path="agri/fpo-registration" element={<FPORegistration />} />
-                                  <Route path="agri/ics-products" element={<ICSProductListing />} />
-                                  <Route path="agri/fpo-products" element={<FPOProductListing />} />
-                                  <Route path="agri/analytics" element={<AnalyticsReports />} />
-                                  <Route path="agri/negotiations" element={<AgriNegotiations />} />
-                                  
-                                  {/* Negotiation & Procurement */}
-                                  <Route path="marketplace" element={<Marketplace />} />
-                                  <Route path="marketplace/:cropId" element={<ProductProcurement />} />
-                                  <Route path="supplier/:spId" element={<SupplierProfile />} />
-                                  <Route path="my-enquiries" element={<MyEnquiries />} />
-                                  <Route path="buyer-enquiries" element={<BuyerEnquiries />} />
-                                  <Route path="negotiation/:enquiryId" element={<NegotiationWorkspace />} />
-                                  
-                                  {/* Contracts & Payments */}
-                                  <Route path="sp-contracts" element={<SPContractDashboard />} />
-                                  <Route path="buyer-contracts" element={<BuyerContractDashboard />} />
-                                  <Route path="contracts/generate/:enquiryId" element={<ContractGeneration />} />
-                                  <Route path="contracts/review/:contractId" element={<ContractReview />} />
-                                  <Route path="payments/config/:contractId" element={<PaymentConfiguration />} />
-                                  <Route path="payments/gateway/:contractId" element={<PaymentGateway />} />
-                                  <Route path="contracts/repository" element={<ContractRepository />} />
-                                  <Route path="payments/ledger" element={<TransactionLedger />} />
+                                    {/* RBAC Admin Consoles */}
+                                    <Route path="admin/permissions" element={<PermissionConsole />} />
+                                    <Route path="admin/users" element={<UserManagementConsole />} />
+                                    <Route path="security/audit" element={<SecurityAuditCenter />} />
 
-                                  {/* Orders & Fulfilment */}
-                                  <Route path="buyer-orders" element={<BuyerOrderDashboard />} />
-                                  <Route path="sp-orders" element={<SPOrderDashboard />} />
-                                  <Route path="orders/repository" element={<OrderRepository />} />
-                                  <Route path="orders/:orderId" element={<OrderWorkspace />} />
-                                  {/* TC Marketplace & Services */}
-                                  <Route path="tc/marketplace" element={<TCMarketplace />} />
-                                  <Route path="tc/provider/:providerId" element={<TCProviderProfile />} />
-                                  <Route path="tc/request/:providerId" element={<TCRequestWizard />} />
-                                  <Route path="tc/requests" element={<TCProviderDashboard />} />
-                                  <Route path="tc/requests/:requestId" element={<TCRequestWorkspace />} />
-                                  <Route path="tc/offer/:requestId" element={<TCOfferBuilder />} />
-                                  <Route path="tc/proposal/:requestId" element={<TCProposalReview />} />
-                                  <Route path="tc/payment/:requestId" element={<TCPayment />} />
-                                  <Route path="tc/vault" element={<TCVault />} />
+                                    {/* Onboarding & Profiles */}
+                                    <Route path="buyer-registration" element={<BuyerRegistrationWizard />} />
+                                    <Route path="seller-registration" element={<SellerRegistrationWizard />} />
+                                    <Route path="registration-success" element={<RegistrationSuccess />} />
+                                    <Route path="certificate-renewal" element={<CertificateRenewalWizard />} />
+                                    <Route path="seller-approvals" element={<SellerApprovals />} />
+                                    <Route path="buyer-approvals" element={<BuyerApprovals />} />
+                                    <Route path="buyer-approvals/:id" element={<BuyerApplicationDetails />} />
+                                    <Route path="buyer-profile/:id" element={<BuyerTrustProfile />} />
+                                    <Route path="survey" element={<UploadSurveyWizard />} />
+                                    <Route path="survey-success" element={<SurveySuccess />} />
+                                    <Route path="survey-approvals" element={<SurveyApprovals />} />
 
-                                  {/* FPO Specific */}
-                                  <Route path="fpo/publish" element={<PublishProduct />} />
-                                </Route>
-                              </Routes>
-                            </ActionCenterProvider>
-                          </Router>
-                        </BuyerRegistrationProvider>
-                      </OrderProvider>
-                    </ContractProvider>
-                  </NegotiationProvider>
-                </TCProviderWrapper>
-              </YieldSurveyProvider>
-            </ProductListingProvider>
-          </SellerRegistrationProvider>
-        </AuthProvider>
+                                    {/* Smart Product Listing & Inventory Lifecycle Routes */}
+                                    <Route path="products/create" element={<CreateProductListing />} />
+                                    <Route path="products/manage" element={<SellerProductDashboard />} />
+                                    <Route path="agri/product-approvals" element={<ProductListingApprovals />} />
+
+                                    {/* Agri Dept Additions */}
+                                    <Route path="agri/fpo-registration" element={<FPORegistration />} />
+                                    <Route path="agri/ics-products" element={<ICSProductListing />} />
+                                    <Route path="agri/fpo-products" element={<FPOProductListing />} />
+                                    <Route path="agri/analytics" element={<AnalyticsReports />} />
+                                    <Route path="agri/negotiations" element={<AgriNegotiations />} />
+
+                                    {/* Negotiation & Procurement */}
+                                    <Route path="marketplace" element={<Marketplace />} />
+                                    <Route path="marketplace/:cropId" element={<ProductProcurement />} />
+                                    <Route path="supplier/:spId" element={<SupplierProfile />} />
+                                    <Route path="my-enquiries" element={<MyEnquiries />} />
+                                    <Route path="buyer-enquiries" element={<BuyerEnquiries />} />
+                                    <Route path="negotiation/:enquiryId" element={<NegotiationWorkspace />} />
+
+                                    {/* Contracts & Payments */}
+                                    <Route path="sp-contracts" element={<SPContractDashboard />} />
+                                    <Route path="buyer-contracts" element={<BuyerContractDashboard />} />
+                                    <Route path="contracts/generate/:enquiryId" element={<ContractGeneration />} />
+                                    <Route path="contracts/review/:contractId" element={<ContractReview />} />
+                                    <Route path="payments/config/:contractId" element={<PaymentConfiguration />} />
+                                    <Route path="payments/gateway/:contractId" element={<PaymentGateway />} />
+                                    <Route path="contracts/repository" element={<ContractRepository />} />
+                                    <Route path="payments/ledger" element={<TransactionLedger />} />
+
+                                    {/* Orders & Fulfilment */}
+                                    <Route path="buyer-orders" element={<BuyerOrderDashboard />} />
+                                    <Route path="sp-orders" element={<SPOrderDashboard />} />
+                                    <Route path="orders/repository" element={<OrderRepository />} />
+                                    <Route path="orders/:orderId" element={<OrderWorkspace />} />
+
+                                    {/* TC Marketplace & Services */}
+                                    <Route path="tc/marketplace" element={<TCMarketplace />} />
+                                    <Route path="tc/provider/:providerId" element={<TCProviderProfile />} />
+                                    <Route path="tc/request/:providerId" element={<TCRequestWizard />} />
+                                    <Route path="tc/requests" element={<TCProviderDashboard />} />
+                                    <Route path="tc/requests/:requestId" element={<TCRequestWorkspace />} />
+                                    <Route path="tc/offer/:requestId" element={<TCOfferBuilder />} />
+                                    <Route path="tc/proposal/:requestId" element={<TCProposalReview />} />
+                                    <Route path="tc/payment/:requestId" element={<TCPayment />} />
+                                    <Route path="tc/vault" element={<TCVault />} />
+
+                                    {/* FPO Specific */}
+                                    <Route path="fpo/publish" element={<PublishProduct />} />
+                                  </Route>
+                                </Routes>
+                              </ActionCenterProvider>
+                            </Router>
+                          </BuyerRegistrationProvider>
+                        </OrderProvider>
+                      </ContractProvider>
+                    </NegotiationProvider>
+                  </TCProviderWrapper>
+                </YieldSurveyProvider>
+              </ProductListingProvider>
+            </SellerRegistrationProvider>
+          </AuthProvider>
+        </RBACProvider>
       </NotificationProvider>
     </LanguageProvider>
   );

@@ -1,45 +1,54 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import type { UserRole } from '../context/AuthContext';
-import { Mail, Lock, LogIn, ArrowLeft } from 'lucide-react';
+import { useRBAC } from '../context/RBACContext';
+import { Smartphone, Shield, ArrowLeft, Key, Lock, CheckCircle2, UserCheck, RefreshCw } from 'lucide-react';
 import logoImg from '../assets/logo.png';
 
-const DEMO_USERS = [
-  { label: 'Agriculture Department', email: 'agridept@sikkim.gov.in', pass: 'Agri@123', role: 'AGRI_DEPT', name: 'Directorate of Agriculture' },
-  { label: 'Seller', email: 'seller.admin@sikkimorganic.in', pass: 'Seller@123', role: 'ICS_PROVIDER', name: 'Sikkim Seller Admin' },
-  { label: 'FPO', email: 'fpo001@sikkimorganic.in', pass: 'FPO@123', role: 'FPO_FARMER', name: 'Ongmu Bhutia (FPO)' },
-  { label: 'Buyer', email: 'buyer@organicmart.com', pass: 'Buyer@123', role: 'BUYER', name: 'Naturals India Procurement' }
-];
-
-const Login: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+export const Login: React.FC = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { loginWithOTP, quickSwitchUser, currentUser } = useRBAC();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const [mobile, setMobile] = useState('');
+  const [otp, setOtp] = useState('');
+  const [step, setStep] = useState<'MOBILE' | 'OTP'>('MOBILE');
+  const [timer, setTimer] = useState(30);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+
+  useEffect(() => {
+    let interval: any;
+    if (step === 'OTP' && timer > 0) {
+      interval = setInterval(() => setTimer(t => t - 1), 1000);
+    }
+    return () => clearInterval(interval);
+  }, [step, timer]);
+
+  const handleSendOTP = (e: React.FormEvent) => {
     e.preventDefault();
-    const foundUser = DEMO_USERS.find(u => u.email.toLowerCase() === email.toLowerCase() && u.pass === password) ||
-      (email.toLowerCase() === 'ics.admin@sikkimorganic.in' ? DEMO_USERS[1] : null) ||
-      (email.toLowerCase() === 'farmer001@sikkimorganic.in' ? DEMO_USERS[2] : null);
-    if (foundUser) {
-      login({
-        email: foundUser.email,
-        name: foundUser.name,
-        role: foundUser.role as UserRole
-      });
+    if (!/^\d{10}$/.test(mobile)) {
+      setErrorMessage('Please enter a valid 10-digit mobile number.');
+      return;
+    }
+    setErrorMessage('');
+    setStep('OTP');
+    setTimer(30);
+    setSuccessMessage(`OTP sent to +91 ${mobile}. Enter 123456 to verify.`);
+  };
+
+  const handleVerifyOTP = (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage('');
+    const res = loginWithOTP(mobile, otp);
+    if (res.success) {
       navigate('/dashboard');
     } else {
-      setError('Invalid email or password. Please use the demo credentials.');
+      setErrorMessage(res.message);
     }
   };
 
-  const handleDemoClick = (user: typeof DEMO_USERS[0]) => {
-    setEmail(user.email);
-    setPassword(user.pass);
-    setError('');
+  const handlePresetLogin = (userId: string) => {
+    quickSwitchUser(userId);
+    navigate('/dashboard');
   };
 
   return (
@@ -47,7 +56,7 @@ const Login: React.FC = () => {
       <div className="sm:mx-auto sm:w-full sm:max-w-4xl">
         <div className="flex items-center justify-between mb-6">
           <Link to="/" className="inline-flex items-center text-sm font-bold text-slate-600 hover:text-emerald-700 transition-colors">
-            <ArrowLeft className="w-4 h-4 mr-1.5" /> Back to Home
+            <ArrowLeft className="w-4 h-4 mr-1.5" /> Back to Public Marketplace
           </Link>
           <div className="flex items-center gap-3">
             <img src={logoImg} alt="Sikkim Organic Logo" className="h-10 w-auto" />
@@ -56,134 +65,219 @@ const Login: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-          {/* Left Section: Sign In Form */}
+          {/* Left: Single OTP Login System */}
           <div className="bg-white py-8 px-6 sm:px-8 shadow-sm rounded-2xl border border-slate-200 flex flex-col justify-between">
             <div>
               <div className="mb-6">
-                <h2 className="text-2xl font-black text-slate-900">Sign in to your portal</h2>
-                <p className="mt-1 text-xs font-medium text-slate-500">Access your Sikkim Organic Digital Ecosystem account</p>
+                <span className="px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-full text-[10px] font-extrabold tracking-wider uppercase">
+                  Single OTP Authentication & Guest First
+                </span>
+                <h2 className="text-2xl font-black text-slate-900 mt-2">Mobile OTP Login / Register</h2>
+                <p className="mt-1 text-xs font-medium text-slate-500">
+                  New users start instantly as Guest Users. Upgrade to Seller / Buyer after onboarding.
+                </p>
               </div>
 
-              <form className="space-y-4" onSubmit={handleLogin}>
-                {error && (
-                  <div className="bg-red-50 border border-red-200 text-red-700 text-xs font-semibold p-3 rounded-xl text-center">
-                    {error}
-                  </div>
-                )}
-                
-                <div>
-                  <label htmlFor="email" className="block text-xs font-bold text-slate-700 mb-1">Email address</label>
-                  <div className="relative rounded-xl shadow-xs">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Mail className="h-4 w-4 text-slate-400" />
-                    </div>
-                    <input
-                      id="email"
-                      name="email"
-                      type="email"
-                      autoComplete="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="focus:ring-emerald-500 focus:border-emerald-500 block w-full pl-9 text-xs border-slate-300 rounded-xl py-2.5 px-3 border font-medium text-slate-900 outline-none"
-                      placeholder="you@example.com"
-                    />
-                  </div>
+              {errorMessage && (
+                <div className="mb-4 bg-red-50 border border-red-200 text-red-700 text-xs font-semibold p-3 rounded-xl">
+                  {errorMessage}
                 </div>
+              )}
 
-                <div>
-                  <label htmlFor="password" className="block text-xs font-bold text-slate-700 mb-1">Password</label>
-                  <div className="relative rounded-xl shadow-xs">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Lock className="h-4 w-4 text-slate-400" />
-                    </div>
-                    <input
-                      id="password"
-                      name="password"
-                      type="password"
-                      autoComplete="current-password"
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="focus:ring-emerald-500 focus:border-emerald-500 block w-full pl-9 text-xs border-slate-300 rounded-xl py-2.5 px-3 border font-medium text-slate-900 outline-none"
-                      placeholder="••••••••"
-                    />
-                  </div>
+              {successMessage && (
+                <div className="mb-4 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold p-3 rounded-xl flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>{successMessage}</span>
                 </div>
+              )}
 
-                <div className="flex items-center justify-between text-xs pt-1">
-                  <div className="flex items-center">
-                    <input
-                      id="remember-me"
-                      name="remember-me"
-                      type="checkbox"
-                      className="h-3.5 w-3.5 text-emerald-600 focus:ring-emerald-500 border-slate-300 rounded cursor-pointer"
-                    />
-                    <label htmlFor="remember-me" className="ml-2 block text-slate-700 font-medium cursor-pointer">
-                      Remember me
-                    </label>
-                  </div>
-
+              {step === 'MOBILE' ? (
+                <form onSubmit={handleSendOTP} className="space-y-4">
                   <div>
-                    <a href="#" className="font-bold text-emerald-700 hover:text-emerald-800">
-                      Forgot password?
-                    </a>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Mobile Number (India +91)</label>
+                    <div className="relative rounded-xl shadow-xs">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Smartphone className="h-4 w-4 text-slate-400" />
+                      </div>
+                      <input
+                        type="tel"
+                        maxLength={10}
+                        required
+                        value={mobile}
+                        onChange={(e) => setMobile(e.target.value.replace(/\D/g, ''))}
+                        className="focus:ring-emerald-500 focus:border-emerald-500 block w-full pl-9 text-xs border-slate-300 rounded-xl py-3 px-3 border font-mono font-medium text-slate-900 outline-none"
+                        placeholder="e.g. 9876543210"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <div className="pt-2">
                   <button
                     type="submit"
-                    className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-xs text-xs font-extrabold text-white bg-emerald-700 hover:bg-emerald-800 focus:outline-none transition-colors"
+                    className="w-full flex justify-center items-center py-3 px-4 rounded-xl shadow-xs text-xs font-extrabold text-white bg-emerald-700 hover:bg-emerald-800 transition-colors"
                   >
-                    <LogIn className="w-4 h-4 mr-2" />
-                    Sign in
+                    Send 6-Digit Verification OTP
                   </button>
-                </div>
-              </form>
+                </form>
+              ) : (
+                <form onSubmit={handleVerifyOTP} className="space-y-4">
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-bold text-slate-700">Enter 6-Digit OTP</label>
+                      <button
+                        type="button"
+                        onClick={() => setStep('MOBILE')}
+                        className="text-[11px] text-emerald-700 hover:underline font-semibold"
+                      >
+                        Change Mobile ({mobile})
+                      </button>
+                    </div>
+                    <div className="relative rounded-xl shadow-xs">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Key className="h-4 w-4 text-slate-400" />
+                      </div>
+                      <input
+                        type="text"
+                        maxLength={6}
+                        required
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value)}
+                        className="focus:ring-emerald-500 focus:border-emerald-500 block w-full pl-9 text-sm tracking-widest font-mono border-slate-300 rounded-xl py-3 px-3 border font-bold text-slate-900 outline-none"
+                        placeholder="123456"
+                      />
+                    </div>
+                    <p className="text-[10px] text-slate-400 mt-1">Demo Test OTP: <strong>123456</strong></p>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-slate-500">
+                      {timer > 0 ? `Resend in ${timer}s` : 'Didn\'t receive code?'}
+                    </span>
+                    {timer === 0 && (
+                      <button
+                        type="button"
+                        onClick={() => { setTimer(30); setSuccessMessage('Resent OTP to +91 ' + mobile); }}
+                        className="font-bold text-emerald-700 hover:underline"
+                      >
+                        Resend OTP
+                      </button>
+                    )}
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full flex justify-center items-center py-3 px-4 rounded-xl shadow-xs text-xs font-extrabold text-white bg-emerald-700 hover:bg-emerald-800 transition-colors"
+                  >
+                    Verify OTP & Proceed
+                  </button>
+                </form>
+              )}
+            </div>
+
+            <div className="mt-6 pt-4 border-t border-slate-100 text-[11px] text-slate-500 flex items-center gap-2">
+              <Shield className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>Protected by Sikkim Organic Security Framework with OTP lockout monitoring.</span>
             </div>
           </div>
 
-          {/* Right Section: Demonstration Login Access */}
-          <div className="bg-gradient-to-br from-emerald-900 via-emerald-800 to-teal-900 py-8 px-6 sm:px-8 shadow-sm rounded-2xl text-white flex flex-col justify-between border border-emerald-700/50">
+          {/* Right: Quick Preset Role Switcher for Evaluation */}
+          <div className="bg-gradient-to-br from-slate-900 via-emerald-950 to-slate-900 py-8 px-6 sm:px-8 shadow-sm rounded-2xl text-white flex flex-col justify-between border border-emerald-800/40">
             <div>
-              <div className="mb-5 pb-4 border-b border-emerald-700/60">
-                <span className="text-[10px] font-extrabold tracking-widest uppercase bg-emerald-700/60 text-emerald-200 px-2.5 py-1 rounded-full border border-emerald-500/40 inline-block mb-2">
-                  1-Click Quick Login
+              <div className="mb-5 pb-4 border-b border-slate-800">
+                <span className="px-2.5 py-0.5 bg-emerald-500/20 text-emerald-300 rounded-full text-[10px] font-bold uppercase tracking-wider border border-emerald-500/30">
+                  Evaluator Quick Presets
                 </span>
-                <h3 className="text-xl font-black text-white">Demonstration Access</h3>
-                <p className="text-xs text-emerald-200/90 mt-1">Select a role below to auto-fill credentials & sign in directly:</p>
+                <h3 className="text-lg font-bold mt-2 text-white">Instant Multi-Role Test Profiles</h3>
+                <p className="text-xs text-slate-400 mt-1">Select any platform role to immediately test dynamic navigation, matrix permissions, and workspaces.</p>
               </div>
 
               <div className="space-y-2.5">
-                {DEMO_USERS.map((user, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => handleDemoClick(user)}
-                    className="w-full text-left p-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 hover:border-white/30 transition-all flex items-center justify-between group cursor-pointer"
-                  >
-                    <div>
-                      <span className="font-bold text-white text-xs block group-hover:text-emerald-200 transition-colors">{user.label}</span>
-                      <span className="text-[11px] text-emerald-200/80 font-mono block mt-0.5">{user.email}</span>
+                <button
+                  onClick={() => handlePresetLogin('USR-001')}
+                  className="w-full text-left p-3 rounded-xl bg-slate-800/80 hover:bg-emerald-900/60 border border-slate-700 hover:border-emerald-500/50 transition-all flex items-center justify-between group"
+                >
+                  <div>
+                    <div className="text-xs font-bold text-emerald-300 flex items-center gap-1.5">
+                      <Shield className="w-3.5 h-3.5 text-emerald-400" /> Super Admin
                     </div>
-                    <span className="text-[11px] font-extrabold text-white bg-white/15 group-hover:bg-white text-white group-hover:text-emerald-900 px-2.5 py-1 rounded-lg transition-colors shrink-0">
-                      Auto-fill →
-                    </span>
-                  </button>
-                ))}
+                    <div className="text-[11px] text-slate-300 mt-0.5">Prem Das Rai • Full RBAC Matrix Console & Audit control</div>
+                  </div>
+                  <UserCheck className="w-4 h-4 text-slate-500 group-hover:text-emerald-400" />
+                </button>
+
+                <button
+                  onClick={() => handlePresetLogin('USR-002')}
+                  className="w-full text-left p-3 rounded-xl bg-slate-800/80 hover:bg-emerald-900/60 border border-slate-700 hover:border-emerald-500/50 transition-all flex items-center justify-between group"
+                >
+                  <div>
+                    <div className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                      <RefreshCw className="w-3.5 h-3.5 text-amber-400" /> Dual Role: Seller + Buyer (FPO)
+                    </div>
+                    <div className="text-[11px] text-slate-300 mt-0.5">Dawa Lepcha • Tests Header Role Switcher & dual workspace</div>
+                  </div>
+                  <UserCheck className="w-4 h-4 text-slate-500 group-hover:text-amber-400" />
+                </button>
+
+                <button
+                  onClick={() => handlePresetLogin('USR-005')}
+                  className="w-full text-left p-3 rounded-xl bg-slate-800/80 hover:bg-emerald-900/60 border border-slate-700 hover:border-emerald-500/50 transition-all flex items-center justify-between group"
+                >
+                  <div>
+                    <div className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                      <Shield className="w-3.5 h-3.5 text-amber-400" /> SOFDA Admin
+                    </div>
+                    <div className="text-[11px] text-slate-300 mt-0.5">Tashi Bhutia • Buyer/Seller approvals, Listing approvals & compliance</div>
+                  </div>
+                  <UserCheck className="w-4 h-4 text-slate-500 group-hover:text-amber-400" />
+                </button>
+
+                <button
+                  onClick={() => handlePresetLogin('USR-006')}
+                  className="w-full text-left p-3 rounded-xl bg-slate-800/80 hover:bg-emerald-900/60 border border-slate-700 hover:border-emerald-500/50 transition-all flex items-center justify-between group"
+                >
+                  <div>
+                    <div className="text-xs font-bold text-purple-300 flex items-center gap-1.5">
+                      <Shield className="w-3.5 h-3.5 text-purple-400" /> Department Admin
+                    </div>
+                    <div className="text-[11px] text-slate-300 mt-0.5">Dr. Norden Lepcha • Ecosystem Analytics, Reports & FPO stats</div>
+                  </div>
+                  <UserCheck className="w-4 h-4 text-slate-500 group-hover:text-purple-400" />
+                </button>
+
+                <button
+                  onClick={() => handlePresetLogin('USR-003')}
+                  className="w-full text-left p-3 rounded-xl bg-slate-800/80 hover:bg-emerald-900/60 border border-slate-700 hover:border-emerald-500/50 transition-all flex items-center justify-between group"
+                >
+                  <div>
+                    <div className="text-xs font-bold text-blue-300 flex items-center gap-1.5">
+                      <UserCheck className="w-3.5 h-3.5 text-blue-400" /> Support User
+                    </div>
+                    <div className="text-[11px] text-slate-300 mt-0.5">Sonam Gyatso • CMS, Master Config & Troubleshooting</div>
+                  </div>
+                  <UserCheck className="w-4 h-4 text-slate-500 group-hover:text-blue-400" />
+                </button>
+
+                <button
+                  onClick={() => handlePresetLogin('USR-004')}
+                  className="w-full text-left p-3 rounded-xl bg-slate-800/80 hover:bg-emerald-900/60 border border-slate-700 hover:border-emerald-500/50 transition-all flex items-center justify-between group"
+                >
+                  <div>
+                    <div className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                      <UserCheck className="w-3.5 h-3.5 text-slate-400" /> Guest User (New Account)
+                    </div>
+                    <div className="text-[11px] text-slate-400 mt-0.5">Pema Bhutia • Public Marketplace & Seller Profile Browser</div>
+                  </div>
+                  <UserCheck className="w-4 h-4 text-slate-500 group-hover:text-slate-300" />
+                </button>
               </div>
             </div>
 
-            <div className="mt-6 pt-4 border-t border-emerald-700/60 text-[11px] text-emerald-300 text-center">
-              Tip: Click any role above to automatically populate the email and password fields.
+            <div className="mt-4 text-[10px] text-slate-400 text-center border-t border-slate-800 pt-3">
+              Compliant Role-Based Access Control Architecture
             </div>
           </div>
-
         </div>
       </div>
     </div>
   );
 };
-
 export default Login;
