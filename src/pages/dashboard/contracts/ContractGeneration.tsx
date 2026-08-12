@@ -94,7 +94,7 @@ const ContractGeneration: React.FC = () => {
       {/* Transaction Lifecycle Breadcrumb */}
       <TransactionMap contractId={contract.id} currentStep="contract" />
 
-      {/* UX4G Header Banner */}
+      {/*  Header Banner */}
       <div className="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center space-x-3">
           <div className="p-3 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-2xl shrink-0">
@@ -229,7 +229,7 @@ const ContractGeneration: React.FC = () => {
         </div>
 
         {/* RIGHT COLUMN: T&C Clause Editor */}
-        <div className="lg:col-span-8 xl:col-span-9 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col" style={{minHeight: '600px'}}>
+        <div className="lg:col-span-8 xl:col-span-9 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col" style={{ minHeight: '600px' }}>
           <div className="px-5 py-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center shrink-0">
             <div>
               <h3 className="font-extrabold text-slate-900 text-sm">Terms & Conditions Editor</h3>
@@ -389,7 +389,7 @@ const ContractGeneration: React.FC = () => {
                 <input
                   type="text"
                   value={newClauseForm.title}
-                  onChange={(e) => setNewClauseForm({...newClauseForm, title: e.target.value})}
+                  onChange={(e) => setNewClauseForm({ ...newClauseForm, title: e.target.value })}
                   className="w-full px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none font-bold text-slate-900 text-xs"
                   placeholder="e.g. Additional Quality Checks, Penalty Clause, Force Majeure..."
                 />
@@ -400,7 +400,7 @@ const ContractGeneration: React.FC = () => {
                 </label>
                 <textarea
                   value={newClauseForm.content}
-                  onChange={(e) => setNewClauseForm({...newClauseForm, content: e.target.value})}
+                  onChange={(e) => setNewClauseForm({ ...newClauseForm, content: e.target.value })}
                   className="w-full px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none text-xs min-h-[140px] resize-y text-slate-800 leading-relaxed"
                   placeholder="Enter the full legal terms and conditions for this clause clearly..."
                 />

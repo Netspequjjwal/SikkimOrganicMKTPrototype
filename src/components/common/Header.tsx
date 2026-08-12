@@ -1,12 +1,16 @@
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { Globe, Menu } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { useData } from '../../hooks/useData';
+import { useRBAC } from '../../context/RBACContext';
+import { RoleSwitcher } from './RoleSwitcher';
 import logoImg from '../../assets/logo.png';
 
 const Header: React.FC = () => {
   const { language, toggleLanguage } = useLanguage();
   const { navigation: navData } = useData();
+  const { currentUser, logout } = useRBAC();
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white/70 backdrop-blur-lg border-b border-gray-200/50 shadow-sm transition-all duration-300">
@@ -32,32 +36,52 @@ const Header: React.FC = () => {
             ))}
           </nav>
 
-          {/* Actions */}
+          {/* Role Switcher & User Actions */}
           <div className="hidden md:flex items-center space-x-4">
-            <div className="flex items-center text-gray-500 transition-colors">
+            <div className="flex items-center text-gray-500 transition-colors mr-2">
               <Globe className="w-4 h-4 mr-1" />
               <select 
                 value={language}
-                onChange={(e) => toggleLanguage()}
+                onChange={() => toggleLanguage()}
                 className="text-sm font-medium bg-transparent border-none focus:ring-0 cursor-pointer outline-none text-gray-600 hover:text-primary"
               >
                 <option value="en">English</option>
                 <option value="ne">नेपाली</option>
               </select>
             </div>
-            {navData.actions.map((action, index) => (
-              <Link
-                key={index}
-                to="/login"
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  action.primary
-                    ? 'bg-primary text-white hover:bg-primary-dark'
-                    : 'text-primary bg-green-50 hover:bg-green-100'
-                }`}
-              >
-                {action.label}
-              </Link>
-            ))}
+
+            <RoleSwitcher />
+
+            {currentUser ? (
+              <div className="flex items-center gap-3">
+                <Link
+                  to="/dashboard"
+                  className="px-4 py-2 rounded-md text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 transition-colors shadow-xs"
+                >
+                  Dashboard ({currentUser.name.split(' ')[0]})
+                </Link>
+                <button
+                  onClick={logout}
+                  className="text-xs text-slate-500 hover:text-red-600 font-medium transition-colors"
+                >
+                  Logout
+                </button>
+              </div>
+            ) : (
+              navData.actions.map((action, index) => (
+                <Link
+                  key={index}
+                  to="/login"
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    action.primary
+                      ? 'bg-primary text-white hover:bg-primary-dark'
+                      : 'text-primary bg-green-50 hover:bg-green-100'
+                  }`}
+                >
+                  {action.label}
+                </Link>
+              ))
+            )}
           </div>
 
           {/* Mobile menu button */}

@@ -18,10 +18,10 @@ const BuyerEnquiries: React.FC = () => {
   const closedCount = supplierEnquiries.filter(e => e.status === 'Negotiation Successful' || e.status === 'Converted to Digital Contract').length;
 
   const filteredEnquiries = supplierEnquiries.filter(enq => {
-    const matchesSearch = enq.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          enq.buyerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          enq.product.toLowerCase().includes(searchTerm.toLowerCase());
-    
+    const matchesSearch = enq.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      enq.buyerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      enq.product.toLowerCase().includes(searchTerm.toLowerCase());
+
     if (!matchesSearch) return false;
     if (activeTab === 'NEW') return enq.status === 'New Enquiry';
     if (activeTab === 'ACTIVE') return enq.status !== 'Negotiation Successful' && enq.status !== 'Negotiation Declined' && enq.status !== 'Converted to Digital Contract';
@@ -30,7 +30,7 @@ const BuyerEnquiries: React.FC = () => {
   });
 
   const getStatusColor = (status: string) => {
-    switch(status) {
+    switch (status) {
       case 'New Enquiry': return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'Quotation Submitted': return 'bg-purple-100 text-purple-800 border-purple-200';
       case 'Counter Offer': return 'bg-orange-100 text-orange-800 border-orange-200';
@@ -43,7 +43,7 @@ const BuyerEnquiries: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-20">
-      
+
       {/* Header Banner Card */}
       <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center space-x-3">
@@ -61,7 +61,7 @@ const BuyerEnquiries: React.FC = () => {
         </div>
 
         <span className="text-xs font-mono font-bold bg-emerald-100 text-emerald-800 px-3 py-1.5 rounded-full border border-emerald-200 self-start md:self-center shrink-0">
-          UX4G B2B Sales Gateway
+          B2B Sales Gateway
         </span>
       </div>
 
@@ -100,8 +100,8 @@ const BuyerEnquiries: React.FC = () => {
       <div className="bg-white rounded-2xl p-3 sm:p-4 border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4">
         <div className="relative flex-1 w-full">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-          <input 
-            type="text" 
+          <input
+            type="text"
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             placeholder="Search Enquiry ID, Buyer Name, Produce..."
@@ -121,7 +121,7 @@ const BuyerEnquiries: React.FC = () => {
               onClick={() => setActiveTab(t.id as any)}
               className={clsx(
                 "px-3 py-1.5 text-[11px] font-extrabold rounded-full transition-all border",
-                activeTab === t.id 
+                activeTab === t.id
                   ? "bg-slate-900 text-white border-slate-900 shadow-xs"
                   : "bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200"
               )}
@@ -163,7 +163,7 @@ const BuyerEnquiries: React.FC = () => {
                 filteredEnquiries.map(enq => (
                   <tr key={enq.id} className={clsx("hover:bg-slate-50/80 transition-colors", enq.status === 'New Enquiry' && "bg-blue-50/40")}>
                     <td className="px-5 py-3.5 whitespace-nowrap">
-                      <span 
+                      <span
                         onClick={() => navigate(`/dashboard/negotiation/${enq.id}`)}
                         className="font-mono font-bold text-emerald-700 hover:underline cursor-pointer block text-xs"
                       >
@@ -193,7 +193,7 @@ const BuyerEnquiries: React.FC = () => {
                     </td>
 
                     <td className="px-5 py-3.5 whitespace-nowrap text-right">
-                      <button 
+                      <button
                         onClick={() => navigate(`/dashboard/negotiation/${enq.id}`)}
                         className="px-3.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold rounded-xl text-xs shadow-xs transition-all inline-flex items-center gap-1"
                       >
