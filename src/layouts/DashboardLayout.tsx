@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Users, FileText, Settings, LogOut, Bell, Menu, X, 
   BarChart3, Truck, Search, FileCheck, ClipboardList, ShoppingCart, 
   MessageSquare, FileSignature, Package, ShieldCheck, Shield, Key, 
-  UserCheck, Handshake, Lock, Sliders, Database, Globe
+  UserCheck, Handshake, Lock, Sliders, Database, Globe, Building2
 } from 'lucide-react';
 import logoImg from '../assets/logo.png';
 import clsx from 'clsx';
@@ -79,8 +79,7 @@ export const DashboardLayout: React.FC = () => {
     } else if (activeRole === 'GUEST_USER') {
       items.push(
         { icon: ShoppingCart, label: 'Explore Organic Marketplace', path: '/dashboard/marketplace' },
-        { icon: Settings, label: 'Complete Seller Onboarding', path: '/dashboard/seller-registration' },
-        { icon: UserCheck, label: 'Complete Buyer Onboarding', path: '/dashboard/buyer-registration' }
+        { icon: Building2, label: 'Register Organization', path: '/dashboard/org-registration', highlight: true }
       );
     }
 
