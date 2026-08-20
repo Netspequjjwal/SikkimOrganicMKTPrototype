@@ -32,15 +32,17 @@ export const DashboardLayout: React.FC = () => {
         { icon: ShieldCheck, label: 'Permission Matrix Console', path: '/dashboard/admin/permissions', highlight: true },
         { icon: Users, label: 'User Directory & Roles', path: '/dashboard/admin/users' },
         { icon: ShieldCheck, label: 'Security & Audit Center', path: '/dashboard/security/audit' },
-        { icon: FileCheck, label: 'Seller Approvals', path: '/dashboard/seller-approvals' },
-        { icon: UserCheck, label: 'Buyer Approvals', path: '/dashboard/buyer-approvals' },
+        { icon: Building2, label: 'Organizations Verifications', path: '/dashboard/seller-approvals' },
+        { icon: FileCheck, label: 'Scope Certificate Verification', path: '/dashboard/buyer-approvals' },
+        { icon: Users, label: 'Active Organizations Profiles', path: '/dashboard/agri/fpo-registration' },
         { icon: Package, label: 'Product Approvals', path: '/dashboard/agri/product-approvals' },
         { icon: BarChart3, label: 'Analytics & Reports', path: '/dashboard/agri/analytics' }
       );
     } else if (activeRole === 'SOFDA_ADMIN') {
       items.push(
-        { icon: FileCheck, label: 'Seller Onboarding Approvals', path: '/dashboard/seller-approvals' },
-        { icon: UserCheck, label: 'Buyer Onboarding Approvals', path: '/dashboard/buyer-approvals' },
+        { icon: Building2, label: 'Organizations Verifications', path: '/dashboard/seller-approvals' },
+        { icon: FileCheck, label: 'Scope Certificate Verification', path: '/dashboard/buyer-approvals' },
+        { icon: Users, label: 'Active Organizations Profiles', path: '/dashboard/agri/fpo-registration' },
         { icon: ShieldCheck, label: 'Product Listing Approvals', path: '/dashboard/agri/product-approvals' },
         { icon: Handshake, label: 'Trade Negotiations Monitoring', path: '/dashboard/agri/negotiations' },
         { icon: BarChart3, label: 'Ecosystem Analytics', path: '/dashboard/agri/analytics' }

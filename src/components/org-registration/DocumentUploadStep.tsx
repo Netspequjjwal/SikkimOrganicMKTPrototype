@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { OrganizationData } from '../../context/OrganizationContext';
-import { UploadCloud, FileText, X, CheckCircle, Calendar } from 'lucide-react';
+import { UploadCloud, FileText, X, CheckCircle, Calendar, Eye } from 'lucide-react';
+import UniversalDocumentViewer from '../common/UniversalDocumentViewer';
 
 interface DocumentUploadStepProps {
   data: Partial<OrganizationData>;
@@ -10,6 +11,10 @@ interface DocumentUploadStepProps {
 
 const DocumentUploadStep: React.FC<DocumentUploadStepProps> = ({ data, errors, onChange }) => {
   const documents = data.documents || {};
+  const [activePreviewDoc, setActivePreviewDoc] = useState<{
+    title: string;
+    fileName: string;
+  } | null>(null);
 
   const handleFileChange = (key: keyof typeof documents, e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -96,14 +101,18 @@ const DocumentUploadStep: React.FC<DocumentUploadStepProps> = ({ data, errors, o
               >
                 {fileName}
               </p>
-              <div className="flex items-center justify-center gap-3 pt-1">
-                <span className="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
-                  <CheckCircle className="w-3.5 h-3.5 mr-1" /> Uploaded
-                </span>
+              <div className="flex items-center justify-center gap-2 pt-1 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => setActivePreviewDoc({ title: title, fileName: fileName })}
+                  className="inline-flex items-center text-xs font-bold text-emerald-800 bg-emerald-100 hover:bg-emerald-200 px-2.5 py-1 rounded-lg border border-emerald-300 shadow-2xs transition-colors"
+                >
+                  <Eye className="w-3.5 h-3.5 mr-1 text-emerald-700" /> Preview
+                </button>
                 <button
                   type="button"
                   onClick={() => removeFile(key)}
-                  className="text-xs text-red-500 hover:text-red-700 font-semibold flex items-center"
+                  className="text-xs text-red-500 hover:text-red-700 font-semibold flex items-center px-2 py-1"
                 >
                   <X className="w-3.5 h-3.5 mr-0.5" /> Remove
                 </button>
@@ -157,6 +166,18 @@ const DocumentUploadStep: React.FC<DocumentUploadStepProps> = ({ data, errors, o
           <strong>Verification Notice:</strong> Documents will be verified by SOFDA officials during the onboarding review. Please ensure document numbers match the details provided in earlier sections.
         </p>
       </div>
+
+      {/* Universal Document Viewer Preview Modal */}
+      {activePreviewDoc && (
+        <UniversalDocumentViewer
+          isOpen={!!activePreviewDoc}
+          onClose={() => setActivePreviewDoc(null)}
+          documentTitle={activePreviewDoc.title}
+          documentFileName={activePreviewDoc.fileName}
+          entityName={data.legalName || 'Karmapa Organic Traders'}
+          registrationNumber={data.registrationNumber || 'REG-2026-SK-8891'}
+        />
+      )}
     </div>
   );
 };

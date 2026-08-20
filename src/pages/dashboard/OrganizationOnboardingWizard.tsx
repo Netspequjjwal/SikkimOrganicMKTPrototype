@@ -350,8 +350,8 @@ const OrganizationOnboardingWizard: React.FC = () => {
               <div>
                 <div className="flex items-center gap-2">
                   <h1 className="text-2xl font-bold text-gray-900">{orgData?.legalName}</h1>
-                  <span className="px-3 py-0.5 bg-emerald-100 text-emerald-800 font-bold text-xs rounded-full flex items-center gap-1">
-                    <CheckCircle className="w-3.5 h-3.5" /> SOFDA Approved (Active State)
+                  <span className="px-3 py-0.5 bg-emerald-100 text-emerald-800 font-bold text-xs rounded-full flex items-center gap-1 whitespace-nowrap">
+                    <CheckCircle className="w-3.5 h-3.5" /> Approved
                   </span>
                 </div>
                 <p className="text-sm text-gray-500 mt-0.5">
@@ -386,7 +386,7 @@ const OrganizationOnboardingWizard: React.FC = () => {
                       <Store className="w-6 h-6" />
                     </div>
                     <span
-                      className={`text-xs font-bold px-3 py-1 rounded-full ${
+                      className={`text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap ${
                         sellerStatus === 'ACTIVE'
                           ? 'bg-emerald-500 text-white'
                           : sellerStatus === 'PENDING_SCOPE_VERIFICATION'
@@ -395,9 +395,9 @@ const OrganizationOnboardingWizard: React.FC = () => {
                       }`}
                     >
                       {sellerStatus === 'ACTIVE'
-                        ? 'Seller Profile ACTIVE'
+                        ? 'Approved'
                         : sellerStatus === 'PENDING_SCOPE_VERIFICATION'
-                        ? 'Pending SOFDA Scope Verification'
+                        ? 'Pending'
                         : 'Available to Activate'}
                     </span>
                   </div>
@@ -568,11 +568,11 @@ const OrganizationOnboardingWizard: React.FC = () => {
                       <ShoppingBag className="w-6 h-6" />
                     </div>
                     <span
-                      className={`text-xs font-bold px-3 py-1 rounded-full ${
+                      className={`text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap ${
                         capabilities.isBuyerActive ? 'bg-blue-500 text-white' : 'bg-slate-700 text-slate-300'
                       }`}
                     >
-                      {capabilities.isBuyerActive ? 'Buyer Profile ACTIVE' : 'Available to Activate'}
+                      {capabilities.isBuyerActive ? 'Approved' : 'Available to Activate'}
                     </span>
                   </div>
                   <div>

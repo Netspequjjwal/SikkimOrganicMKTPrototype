@@ -127,16 +127,16 @@ const AgriDeptDashboard: React.FC = () => {
                   {pendingSellerCount} Pending
                 </span>
               </div>
-              <h3 className="font-bold text-slate-900 text-sm group-hover:text-emerald-700 transition-colors">Seller / SP Approvals</h3>
-              <p className="text-xs text-slate-500 mt-1">Review Sikkim Organic Service Providers & ICS Entities</p>
+              <h3 className="font-bold text-slate-900 text-sm group-hover:text-emerald-700 transition-colors">Organizations Verifications</h3>
+              <p className="text-xs text-slate-500 mt-1">Review & verify incoming Organization Profiles (Business Info, Compliances, Infrastructure, Documents)</p>
             </div>
             <div className="mt-4 pt-3 border-t border-slate-200/60 flex justify-between items-center text-xs font-bold text-emerald-700 group-hover:underline">
-              <span>Review Sellers (3)</span>
+              <span>Review Organizations ({pendingSellerCount})</span>
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
             </div>
           </div>
 
-          {/* Buyer Approvals Card */}
+          {/* Scope Certificate Verification Card */}
           <div 
             onClick={() => navigate('/dashboard/buyer-approvals')}
             className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white hover:border-blue-500 hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
@@ -150,16 +150,16 @@ const AgriDeptDashboard: React.FC = () => {
                   {pendingBuyerCount} Pending
                 </span>
               </div>
-              <h3 className="font-bold text-slate-900 text-sm group-hover:text-blue-700 transition-colors">Buyer Organization Approvals</h3>
-              <p className="text-xs text-slate-500 mt-1">Verify Bulk Institutional Buyers & Exporters</p>
+              <h3 className="font-bold text-slate-900 text-sm group-hover:text-blue-700 transition-colors">Scope Certificate Verification</h3>
+              <p className="text-xs text-slate-500 mt-1">Verify submitted seller Scope Certificates & authorized organic produces</p>
             </div>
             <div className="mt-4 pt-3 border-t border-slate-200/60 flex justify-between items-center text-xs font-bold text-blue-700 group-hover:underline">
-              <span>Review Buyers (4)</span>
+              <span>Verify Scope Certs ({pendingBuyerCount})</span>
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
             </div>
           </div>
 
-          {/* FPO Approvals Card */}
+          {/* Active Organizations Profiles Card */}
           <div 
             onClick={() => navigate('/dashboard/agri/fpo-registration')}
             className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white hover:border-purple-500 hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
@@ -169,15 +169,15 @@ const AgriDeptDashboard: React.FC = () => {
                 <div className="w-9 h-9 bg-purple-100 text-purple-800 rounded-lg flex items-center justify-center">
                   <Users className="w-5 h-5" />
                 </div>
-                <span className="bg-amber-100 text-amber-800 text-xs font-extrabold px-2.5 py-0.5 rounded-full border border-amber-200">
-                  {pendingFpoCount} Pending
+                <span className="bg-emerald-100 text-emerald-800 text-xs font-extrabold px-2.5 py-0.5 rounded-full border border-emerald-200">
+                  Active Directory
                 </span>
               </div>
-              <h3 className="font-bold text-slate-900 text-sm group-hover:text-purple-700 transition-colors">FPO Approvals</h3>
-              <p className="text-xs text-slate-500 mt-1">Sanction Farmer Producer Organization Registrations</p>
+              <h3 className="font-bold text-slate-900 text-sm group-hover:text-purple-700 transition-colors">Active Organizations Profiles</h3>
+              <p className="text-xs text-slate-500 mt-1">List of active registered organizations and activated buyer/seller capabilities</p>
             </div>
             <div className="mt-4 pt-3 border-t border-slate-200/60 flex justify-between items-center text-xs font-bold text-purple-700 group-hover:underline">
-              <span>Review FPOs (2)</span>
+              <span>View Active Profiles</span>
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
             </div>
           </div>
