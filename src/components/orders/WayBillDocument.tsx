@@ -3,6 +3,7 @@ import { Order, WayBillDetails } from '../../context/OrderContext';
 import { Printer, FileText, CheckCircle, Save, Edit3, ShieldCheck, Download } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useRBAC } from '../../context/RBACContext';
+import clsx from 'clsx';
 
 interface Props {
   order: Order;
@@ -14,17 +15,32 @@ const WayBillDocument: React.FC<Props> = ({ order, onGenerate }) => {
   const { activeRole } = useRBAC();
   const isSeller = activeRole === 'SELLER_USER' || user?.role === 'ICS_PROVIDER' || activeRole === 'SUPER_ADMIN';
   const isDraft = !order.wayBillDetails?.wayBillNumber;
+  const isSelfPickup = order.deliveryAddress?.deliveryMode === 'SELF_PICKUP';
 
+  const defaultLogisticsPartner = isSelfPickup
+    ? (order.deliveryAddress?.companyName ? `${order.deliveryAddress.companyName} (Self-Pickup)` : 'Buyer Self-Transport / Direct Pickup')
+    : 'Sikkim Express Logistics Services';
+
+  const defaultVehicleNumber = isSelfPickup
+    ? (order.deliveryAddress?.vehicleNumber || (order.deliveryAddress?.provideDriverLater ? 'Pending Buyer Vehicle Assignment' : 'SK-01-AB-4829'))
+    : 'SK-01-AB-4829';
+
+  const defaultDriverContact = isSelfPickup
+    ? (order.deliveryAddress?.driverName ? `${order.deliveryAddress.driverName} (${order.deliveryAddress.driverContact})` : (order.deliveryAddress?.driverContact || 'Driver Contact on Arrival'))
+    : '9876512345 (Ramesh Sharma)';
 
   const DEMO_WAYBILL: Partial<WayBillDetails> = {
-    dispatchLocation: order.supplierName + ' Central Warehouse, Gangtok',
-    logisticsPartnerName: 'Sikkim Express Logistics Services',
-    vehicleNumber: 'SK-01-AB-4829',
-    driverContact: '9876512345 (Ramesh Sharma)',
-    trackingRef: 'SE-LOG-2026-9941',
-    expectedDeliveryDate: '2026-08-05',
-    transportInstructions: 'Maintain temperature controlled environment. Handle organic produce with care.',
+    dispatchLocation: order.deliveryAddress?.pickupLocation || (order.supplierName + ' Central Warehouse, Gangtok'),
+    logisticsPartnerName: defaultLogisticsPartner,
+    vehicleNumber: defaultVehicleNumber,
+    driverContact: defaultDriverContact,
+    trackingRef: isSelfPickup ? `PICKUP-${order.id}` : 'SE-LOG-2026-9941',
+    expectedDeliveryDate: order.deliveryAddress?.estimatedPickupDate || '2026-08-05',
+    transportInstructions: isSelfPickup
+      ? (order.deliveryAddress?.deliveryInstructions || 'Buyer direct consignment collection. Verify order token upon vehicle arrival.')
+      : 'Maintain temperature controlled environment. Handle organic produce with care.',
     qualityInspected: true,
+    deliveryMode: isSelfPickup ? 'SELF_PICKUP' : 'SELLER_DELIVERY',
     tcNumber: '',
     tcIssuedDate: '',
     tcCertifyingBody: '',
@@ -59,24 +75,32 @@ const WayBillDocument: React.FC<Props> = ({ order, onGenerate }) => {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden waybill-container">
       {/* Non-printable header actions */}
-      <div className="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center print:hidden">
-        <h3 className="font-bold text-gray-900 flex items-center">
-          <FileText className="w-5 h-5 mr-2 text-primary" /> 
-          {isDraft ? 'Way Bill Draft' : `Way Bill: ${order.wayBillDetails?.wayBillNumber}`}
-        </h3>
+      <div className="bg-gray-50 border-b border-gray-200 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 print:hidden">
+        <div className="flex items-center flex-wrap gap-2">
+          <h3 className="font-bold text-gray-900 flex items-center">
+            <FileText className="w-5 h-5 mr-2 text-primary" /> 
+            {isDraft ? 'Way Bill Draft' : `Way Bill: ${order.wayBillDetails?.wayBillNumber}`}
+          </h3>
+          <span className={clsx(
+            "text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border",
+            isSelfPickup ? "bg-amber-100 text-amber-900 border-amber-300" : "bg-emerald-100 text-emerald-900 border-emerald-300"
+          )}>
+            {isSelfPickup ? '🚗 Buyer Self-Pickup' : '🚚 Seller Arranged'}
+          </span>
+        </div>
         <div className="flex gap-2">
           {isSeller && !isEditing && (
-            <button onClick={() => setIsEditing(true)} className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center font-medium transition-colors">
+            <button onClick={() => setIsEditing(true)} className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center font-medium transition-colors text-xs">
               <Edit3 className="w-4 h-4 mr-2" /> Edit Details
             </button>
           )}
           {isSeller && isEditing && (
-            <button onClick={handleSave} className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark flex items-center font-medium transition-colors">
+            <button onClick={handleSave} className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark flex items-center font-medium transition-colors text-xs">
               <Save className="w-4 h-4 mr-2" /> {isDraft ? 'Generate Way Bill' : 'Update Way Bill'}
             </button>
           )}
           {!isDraft && (
-            <button onClick={handlePrint} className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 flex items-center font-medium transition-colors">
+            <button onClick={handlePrint} className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 flex items-center font-medium transition-colors text-xs">
               <Printer className="w-4 h-4 mr-2" /> Print / PDF
             </button>
           )}
@@ -111,14 +135,30 @@ const WayBillDocument: React.FC<Props> = ({ order, onGenerate }) => {
               <p className="text-sm mt-2 font-medium">Contract Ref: {order.contractRef || order.contractId}</p>
             </div>
             <div>
-              <h4 className="font-bold text-gray-900 mb-2 underline">CONSIGNEE (Buyer)</h4>
+              <h4 className="font-bold text-gray-900 mb-2 underline">
+                {isSelfPickup ? 'CONSIGNEE (Buyer Direct Collection)' : 'CONSIGNEE (Buyer)'}
+              </h4>
               <p className="font-medium">{order.deliveryAddress?.recipientName || order.buyerName}</p>
               {order.deliveryAddress?.companyName && <p className="text-sm">{order.deliveryAddress.companyName}</p>}
-              <p className="text-sm mt-1 max-w-xs leading-relaxed">
-                {order.deliveryAddress?.address}, {order.deliveryAddress?.landmark ? `${order.deliveryAddress.landmark}, ` : ''}
-                {order.deliveryAddress?.city}, {order.deliveryAddress?.state} - {order.deliveryAddress?.pinCode}
-              </p>
-              <p className="text-sm mt-1">Contact: {order.deliveryAddress?.contactNumber}</p>
+              
+              {isSelfPickup ? (
+                <div className="text-sm mt-1.5 space-y-1">
+                  <p className="text-xs font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded inline-block">
+                    Mode: Self-Pickup by Buyer Transport
+                  </p>
+                  <p className="text-xs text-gray-600">Pickup Location: {formData.dispatchLocation}</p>
+                  <p className="text-xs text-gray-800">Assigned Vehicle: <strong className="font-mono">{formData.vehicleNumber}</strong></p>
+                  <p className="text-xs text-gray-800">Driver / Contact: {formData.driverContact || order.deliveryAddress?.contactNumber}</p>
+                </div>
+              ) : (
+                <div className="text-sm mt-1">
+                  <p className="max-w-xs leading-relaxed text-gray-700">
+                    {order.deliveryAddress?.address}, {order.deliveryAddress?.landmark ? `${order.deliveryAddress.landmark}, ` : ''}
+                    {order.deliveryAddress?.city}, {order.deliveryAddress?.state} - {order.deliveryAddress?.pinCode}
+                  </p>
+                  <p className="text-sm mt-1">Contact: {order.deliveryAddress?.contactNumber}</p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -250,47 +290,74 @@ const WayBillDocument: React.FC<Props> = ({ order, onGenerate }) => {
             )}
           </div>
 
-          <div className="mb-8 bg-gray-50 border border-gray-200 p-4">
-            <h4 className="font-bold text-gray-900 mb-3">LOGISTICS & DISPATCH INFO</h4>
-            <div className="grid grid-cols-2 gap-4 text-sm">
+          {isSelfPickup && (
+            <div className="mb-6 bg-amber-50 border border-amber-300 rounded-xl p-4 text-xs text-amber-950 flex items-start gap-3">
+              <span className="text-xl">🚗</span>
+              <div className="flex-1">
+                <p className="font-bold text-sm">Self-Pickup Mode Activated</p>
+                <p className="mt-0.5 text-amber-900 leading-relaxed">
+                  The buyer has chosen self-pickup and is arranging transport. Transporter details, vehicle registration number, and driver contact are pre-filled directly from the buyer's order details. {isSeller && isEditing ? 'As the seller, you only need to ensure the Organic TC Number is entered and the Transaction Certificate (TC PDF) is attached above before generating the Way Bill.' : ''}
+                </p>
+              </div>
+            </div>
+          )}
+
+          <div className="mb-8 bg-gray-50 border border-gray-200 p-4 rounded-xl">
+            <div className="flex items-center justify-between mb-3 border-b border-gray-200 pb-2">
+              <h4 className="font-bold text-gray-900 text-sm">
+                {isSelfPickup ? 'LOGISTICS & PICKUP VEHICLE INFO (Buyer Transport)' : 'LOGISTICS & DISPATCH INFO (Seller Arranged)'}
+              </h4>
+              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-white border border-gray-300 text-gray-700">
+                {isSelfPickup ? 'Buyer Arranged Vehicle' : 'Seller Arranged Transport'}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
               <div>
-                <label className="text-gray-500 font-medium block text-xs">Logistics Partner</label>
+                <label className="text-gray-500 font-medium block text-xs">
+                  {isSelfPickup ? 'Transport Mode / Carrier' : 'Logistics Partner'}
+                </label>
                 {isEditing ? (
-                  <input type="text" name="logisticsPartnerName" value={formData.logisticsPartnerName} onChange={handleChange} className="w-full mt-1 p-1 border rounded" />
+                  <input type="text" name="logisticsPartnerName" value={formData.logisticsPartnerName} onChange={handleChange} className="w-full mt-1 p-2 border border-gray-300 rounded text-xs bg-white" />
                 ) : (
-                  <p className="font-medium">{formData.logisticsPartnerName || 'N/A'}</p>
+                  <p className="font-medium text-xs mt-1">{formData.logisticsPartnerName || 'N/A'}</p>
+                )}
+                {isSelfPickup && <p className="text-[10px] text-amber-700 mt-0.5">Pre-filled from buyer transport preference</p>}
+              </div>
+              <div>
+                <label className="text-gray-500 font-medium block text-xs">Tracking / Pickup Token</label>
+                {isEditing ? (
+                  <input type="text" name="trackingRef" value={formData.trackingRef} onChange={handleChange} className="w-full mt-1 p-2 border border-gray-300 rounded text-xs bg-white font-mono" />
+                ) : (
+                  <p className="font-medium font-mono text-xs mt-1">{formData.trackingRef || 'N/A'}</p>
                 )}
               </div>
               <div>
-                <label className="text-gray-500 font-medium block text-xs">Tracking Reference</label>
+                <label className="text-gray-500 font-medium block text-xs">Vehicle Registration Number</label>
                 {isEditing ? (
-                  <input type="text" name="trackingRef" value={formData.trackingRef} onChange={handleChange} className="w-full mt-1 p-1 border rounded" />
+                  <input type="text" name="vehicleNumber" value={formData.vehicleNumber} onChange={handleChange} className="w-full mt-1 p-2 border border-gray-300 rounded text-xs bg-white font-mono font-bold" />
                 ) : (
-                  <p className="font-medium">{formData.trackingRef || 'N/A'}</p>
+                  <p className="font-bold font-mono text-xs mt-1">{formData.vehicleNumber || 'N/A'}</p>
                 )}
+                {isSelfPickup && <p className="text-[10px] text-amber-700 mt-0.5">Assigned by buyer</p>}
               </div>
               <div>
-                <label className="text-gray-500 font-medium block text-xs">Vehicle Number</label>
+                <label className="text-gray-500 font-medium block text-xs">Driver Name & Contact</label>
                 {isEditing ? (
-                  <input type="text" name="vehicleNumber" value={formData.vehicleNumber} onChange={handleChange} className="w-full mt-1 p-1 border rounded" />
+                  <input type="text" name="driverContact" value={formData.driverContact} onChange={handleChange} className="w-full mt-1 p-2 border border-gray-300 rounded text-xs bg-white" />
                 ) : (
-                  <p className="font-medium">{formData.vehicleNumber || 'N/A'}</p>
+                  <p className="font-medium text-xs mt-1">{formData.driverContact || 'N/A'}</p>
                 )}
+                {isSelfPickup && <p className="text-[10px] text-amber-700 mt-0.5">Driver contact assigned by buyer</p>}
               </div>
               <div>
-                <label className="text-gray-500 font-medium block text-xs">Driver Contact</label>
+                <label className="text-gray-500 font-medium block text-xs">
+                  {isSelfPickup ? 'Scheduled Pickup Date' : 'Expected Delivery Date'}
+                </label>
                 {isEditing ? (
-                  <input type="text" name="driverContact" value={formData.driverContact} onChange={handleChange} className="w-full mt-1 p-1 border rounded" />
+                  <input type="date" name="expectedDeliveryDate" value={formData.expectedDeliveryDate || ''} onChange={handleChange} className="w-full mt-1 p-2 border border-gray-300 rounded text-xs bg-white" />
                 ) : (
-                  <p className="font-medium">{formData.driverContact || 'N/A'}</p>
-                )}
-              </div>
-              <div>
-                <label className="text-gray-500 font-medium block text-xs">Expected Delivery Date</label>
-                {isEditing ? (
-                  <input type="date" name="expectedDeliveryDate" value={formData.expectedDeliveryDate || ''} onChange={handleChange} className="w-full mt-1 p-1 border rounded" />
-                ) : (
-                  <p className="font-medium">{formData.expectedDeliveryDate ? new Date(formData.expectedDeliveryDate).toLocaleDateString() : 'N/A'}</p>
+                  <p className="font-medium text-xs mt-1">{formData.expectedDeliveryDate ? new Date(formData.expectedDeliveryDate).toLocaleDateString() : 'N/A'}</p>
                 )}
               </div>
             </div>

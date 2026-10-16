@@ -13,7 +13,15 @@ import { useActionCenter } from '../../../context/ActionCenterContext';
 
 const OrderWorkspace: React.FC = () => {
   const { orderId } = useParams<{ orderId: string }>();
-  const { orders, updateOrderStatus, submitDeliveryAddress, requestAddressConfirmation, confirmDeliveryAddress, confirmDeliveryReceipt } = useOrder();
+  const { 
+    orders, 
+    updateOrderStatus, 
+    submitDeliveryAddress, 
+    requestAddressConfirmation, 
+    confirmDeliveryAddress, 
+    confirmDeliveryReceipt,
+    updateVehicleDetails 
+  } = useOrder();
   const { user } = useAuth();
   const { activeRole } = useRBAC();
   const navigate = useNavigate();
@@ -165,6 +173,8 @@ const OrderWorkspace: React.FC = () => {
                 <>
                   {isBuyer && (
                     <DeliveryAddressForm 
+                      supplierName={order.supplierName}
+                      isBuyer={isBuyer}
                       onSubmit={(addr) => submitDeliveryAddress(order.id, addr)} 
                     />
                   )}
@@ -180,6 +190,8 @@ const OrderWorkspace: React.FC = () => {
               {isEditingAddress && order.deliveryAddress && (
                 <DeliveryAddressForm 
                   initialAddress={order.deliveryAddress}
+                  supplierName={order.supplierName}
+                  isBuyer={isBuyer}
                   onSubmit={(addr) => {
                     submitDeliveryAddress(order.id, addr);
                     setIsEditingAddress(false);
@@ -189,13 +201,20 @@ const OrderWorkspace: React.FC = () => {
             </div>
           ) : (
             <div className="relative">
-              <DeliveryAddressForm initialAddress={order.deliveryAddress} onSubmit={() => {}} readOnly={true} />
+              <DeliveryAddressForm 
+                initialAddress={order.deliveryAddress} 
+                onSubmit={() => {}} 
+                onUpdateVehicle={(v) => updateVehicleDetails(order.id, v)}
+                readOnly={true} 
+                supplierName={order.supplierName}
+                isBuyer={isBuyer}
+              />
               {isBuyer && !['Delivered (Awaiting Buyer Confirmation)', 'Completed'].includes(order.status) && (
                 <button 
                   onClick={() => setIsEditingAddress(true)}
                   className="absolute top-6 right-6 text-xs font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-lg border border-emerald-200 transition-colors shadow-xs"
                 >
-                  Edit Address
+                  Edit Details
                 </button>
               )}
             </div>
@@ -287,6 +306,17 @@ const OrderWorkspace: React.FC = () => {
               <div>
                 <p className="text-gray-400 font-semibold uppercase text-[10px]">{isBuyer ? 'Supplier Entity' : 'Buyer Entity'}</p>
                 <p className="font-bold text-gray-900 mt-0.5">{isBuyer ? order.supplierName : order.buyerName}</p>
+              </div>
+
+              <div>
+                <p className="text-gray-400 font-semibold uppercase text-[10px]">Dispatch Mode</p>
+                <p className="font-bold text-gray-900 mt-0.5 flex items-center">
+                  {order.deliveryAddress?.deliveryMode === 'SELF_PICKUP' ? (
+                    <span className="text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 text-xs">🚗 Self-Pickup (Buyer Transport)</span>
+                  ) : (
+                    <span className="text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 text-xs">🚚 Doorstep Delivery (Seller Arranged)</span>
+                  )}
+                </p>
               </div>
 
               <div>

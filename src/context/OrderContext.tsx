@@ -28,6 +28,15 @@ export interface DeliveryAddress {
   deliveryInstructions?: string;
   preferredTime?: string;
   specialHandling?: string;
+
+  // Self Pickup & Transport Details
+  deliveryMode?: 'SELLER_DELIVERY' | 'SELF_PICKUP';
+  pickupLocation?: string;
+  vehicleNumber?: string;
+  driverName?: string;
+  driverContact?: string;
+  provideDriverLater?: boolean;
+  estimatedPickupDate?: string;
 }
 
 export interface WayBillDetails {
@@ -40,6 +49,7 @@ export interface WayBillDetails {
   driverContact?: string;
   trackingRef?: string;
   qualityInspected?: boolean;
+  deliveryMode?: 'SELLER_DELIVERY' | 'SELF_PICKUP';
 
   // Organic Transaction Certificate (TC) Fields
   tcNumber?: string;
@@ -80,6 +90,7 @@ interface OrderContextType {
   confirmDeliveryAddress: (orderId: string) => void;
   updateOrderStatus: (orderId: string, status: OrderStatus, note?: string, wayBillData?: Partial<WayBillDetails>) => void;
   confirmDeliveryReceipt: (orderId: string) => void;
+  updateVehicleDetails: (orderId: string, vehicleData: { vehicleNumber: string; driverName?: string; driverContact: string; estimatedPickupDate?: string }) => void;
 }
 
 // Initial dummy order linked to the existing dummy contract-2 assuming it got paid
@@ -215,6 +226,34 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     ));
   };
 
+  const updateVehicleDetails = (orderId: string, vehicleData: { vehicleNumber: string; driverName?: string; driverContact: string; estimatedPickupDate?: string }) => {
+    setOrders(prev => prev.map(o => {
+      if (o.id === orderId && o.deliveryAddress) {
+        const updatedAddress: DeliveryAddress = {
+          ...o.deliveryAddress,
+          vehicleNumber: vehicleData.vehicleNumber,
+          driverName: vehicleData.driverName,
+          driverContact: vehicleData.driverContact,
+          estimatedPickupDate: vehicleData.estimatedPickupDate,
+          provideDriverLater: false
+        };
+        return {
+          ...o,
+          deliveryAddress: updatedAddress,
+          timelineEvents: [
+            ...o.timelineEvents,
+            { 
+              status: o.status, 
+              timestamp: new Date().toISOString(), 
+              note: `Buyer assigned pickup vehicle (${vehicleData.vehicleNumber}) and driver (${vehicleData.driverContact}).` 
+            }
+          ]
+        };
+      }
+      return o;
+    }));
+  };
+
   return (
     <OrderContext.Provider value={{
       orders,
@@ -223,7 +262,8 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       requestAddressConfirmation,
       confirmDeliveryAddress,
       updateOrderStatus,
-      confirmDeliveryReceipt
+      confirmDeliveryReceipt,
+      updateVehicleDetails
     }}>
       {children}
     </OrderContext.Provider>
