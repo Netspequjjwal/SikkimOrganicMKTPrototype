@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useOrder, OrderStatus, WayBillDetails } from '../../../context/OrderContext';
 import { useAuth } from '../../../context/AuthContext';
+import { useRBAC } from '../../../context/RBACContext';
 import { Package, MapPin, Truck, ChevronRight, FileText, CheckCircle2, Clock, Send, MessageSquare, ShieldCheck } from 'lucide-react';
 import clsx from 'clsx';
 import OrderProgressTracker from '../../../components/orders/OrderProgressTracker';
@@ -14,9 +15,13 @@ const OrderWorkspace: React.FC = () => {
   const { orderId } = useParams<{ orderId: string }>();
   const { orders, updateOrderStatus, submitDeliveryAddress, requestAddressConfirmation, confirmDeliveryAddress, confirmDeliveryReceipt } = useOrder();
   const { user } = useAuth();
+  const { activeRole } = useRBAC();
   const navigate = useNavigate();
   const { logAction } = useActionCenter();
   const [isEditingAddress, setIsEditingAddress] = useState(false);
+
+  const isBuyer = activeRole === 'BUYER_USER' || user?.role === 'BUYER' || activeRole === 'SUPER_ADMIN';
+  const isSeller = activeRole === 'SELLER_USER' || user?.role === 'ICS_PROVIDER' || activeRole === 'SUPER_ADMIN';
 
   const handleUpdateStatus = (status: OrderStatus, note: string, wayBillData?: Partial<WayBillDetails>) => {
     updateOrderStatus(orderId as string, status, note, wayBillData);
@@ -26,7 +31,7 @@ const OrderWorkspace: React.FC = () => {
       title: `Order Status: ${status}`,
       description: `Order ${orderId} is now ${status}.`,
       iconType: 'order',
-      actionUrl: `/dashboard/buyer-orders/${orderId}`,
+      actionUrl: `/dashboard/orders/${orderId}`,
       refId: orderId
     });
   };
@@ -37,8 +42,6 @@ const OrderWorkspace: React.FC = () => {
     return <div className="p-10 text-center">Order not found.</div>;
   }
 
-  const isBuyer = user?.role === 'BUYER';
-  const isSeller = user?.role === 'ICS_PROVIDER';
 
   const getStatusColor = (status: string) => {
     if (status === 'Completed') return 'bg-green-100 text-green-800';
@@ -165,11 +168,11 @@ const OrderWorkspace: React.FC = () => {
                       onSubmit={(addr) => submitDeliveryAddress(order.id, addr)} 
                     />
                   )}
-                  {isSeller && (
+                  {!isBuyer && (
                     <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6 text-center shadow-sm">
                       <Clock className="w-12 h-12 text-blue-400 mx-auto mb-3" />
-                      <h3 className="text-lg font-bold text-blue-900 mb-2">Waiting for Buyer</h3>
-                      <p className="text-blue-800 text-sm">The advance payment was received. The buyer has been notified to provide their delivery address.</p>
+                      <h3 className="text-lg font-bold text-blue-900 mb-2">Waiting for Buyer Delivery Details</h3>
+                      <p className="text-blue-800 text-sm">The advance payment was received. The buyer has been notified to provide their destination address.</p>
                     </div>
                   )}
                 </>
@@ -245,13 +248,11 @@ const OrderWorkspace: React.FC = () => {
                 </div>
               )}
 
-              {/* Show Way Bill */}
-              {isSeller && (
-                <WayBillDocument 
-                  order={order} 
-                  onGenerate={(data) => handleUpdateStatus('Way Bill Generated', 'Way Bill has been generated.', data)} 
-                />
-              )}
+              {/* Show Way Bill & Transaction Certificate (TC) */}
+              <WayBillDocument 
+                order={order} 
+                onGenerate={(data) => handleUpdateStatus('Way Bill Generated', 'Way Bill has been generated.', data)} 
+              />
             </div>
           )}
 

@@ -131,6 +131,31 @@ const initialContracts: DigitalContract[] = [
     paymentMilestones: [
       { id: 'm1', percentage: 100, amount: 75000, description: '100% Advance Payment', dueDate: new Date(Date.now() + 2 * 86400000).toISOString(), status: 'Pending' }
     ]
+  },
+  {
+    id: 'contract-3',
+    enquiryId: 'ENQ-2026-000305',
+    buyerName: 'Nature Extracts Inc.',
+    supplierName: 'Sikkim Organic Alive',
+    product: 'Ginger (Bhaise)',
+    quantity: 1000,
+    uom: 'KG',
+    procurementType: 'Purchase',
+    pricePerUnit: 80,
+    totalAmount: 80000,
+    currency: 'INR',
+    createdAt: new Date(Date.now() - 2 * 86400000).toISOString(),
+    status: 'Pending Buyer Review',
+    deliveryDate: '2026-09-01',
+    deliveryLocation: 'Siliguri Transit Hub',
+    clauses: defaultClauses,
+    supplierSignature: {
+      name: 'Sonam Lepcha',
+      designation: 'General Manager, Sikkim Organic Alive',
+      timestamp: new Date(Date.now() - 86400000).toISOString()
+    },
+    paymentConfigured: false,
+    paymentMilestones: []
   }
 ];
 

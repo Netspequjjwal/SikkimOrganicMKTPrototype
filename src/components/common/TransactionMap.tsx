@@ -56,7 +56,7 @@ const TransactionMap: React.FC<TransactionMapProps> = ({ enquiryId, contractId, 
       id: 'contract',
       label: 'Digital Contract',
       icon: FileSignature,
-      link: resolvedContractId ? `/dashboard/contracts/${resolvedContractId}` : null,
+      link: resolvedContractId ? `/dashboard/contracts/review/${resolvedContractId}` : null,
       ref: resolvedContractId
     },
     {

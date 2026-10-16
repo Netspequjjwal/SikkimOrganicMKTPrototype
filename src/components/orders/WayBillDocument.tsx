@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Order, WayBillDetails } from '../../context/OrderContext';
 import { Printer, FileText, CheckCircle, Save, Edit3, ShieldCheck, Download } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useRBAC } from '../../context/RBACContext';
 
 interface Props {
   order: Order;
@@ -10,8 +11,10 @@ interface Props {
 
 const WayBillDocument: React.FC<Props> = ({ order, onGenerate }) => {
   const { user } = useAuth();
-  const isSeller = user?.role === 'ICS_PROVIDER';
+  const { activeRole } = useRBAC();
+  const isSeller = activeRole === 'SELLER_USER' || user?.role === 'ICS_PROVIDER' || activeRole === 'SUPER_ADMIN';
   const isDraft = !order.wayBillDetails?.wayBillNumber;
+
 
   const DEMO_WAYBILL: Partial<WayBillDetails> = {
     dispatchLocation: order.supplierName + ' Central Warehouse, Gangtok',

@@ -5,6 +5,8 @@ import { useNotification } from '../../../context/NotificationContext';
 import { Shield, FileSignature, Download, Printer, CheckCircle, Stamp, Clock, CreditCard } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuth } from '../../../context/AuthContext';
+import { useRBAC } from '../../../context/RBACContext';
+import { useOrder } from '../../../context/OrderContext';
 import { useActionCenter } from '../../../context/ActionCenterContext';
 import TransactionMap from '../../../components/common/TransactionMap';
 
@@ -14,6 +16,8 @@ const ContractReview: React.FC = () => {
   const { contracts, signContractBuyer } = useContract();
   const { triggerEmail } = useNotification();
   const { user } = useAuth();
+  const { activeRole } = useRBAC();
+  const { orders } = useOrder();
   const { logAction } = useActionCenter();
   
   const [contract, setContract] = useState<DigitalContract | null>(null);
@@ -28,8 +32,9 @@ const ContractReview: React.FC = () => {
 
   if (!contract) return <div className="p-10 text-center">Loading Legal Document...</div>;
 
-  const isBuyer = user?.role === 'BUYER';
+  const isBuyer = activeRole === 'BUYER_USER' || user?.role === 'BUYER' || activeRole === 'SUPER_ADMIN';
   const isPendingReview = contract.status === 'Pending Buyer Review';
+  const linkedOrder = orders.find(o => o.contractId === contract.id);
 
   const handleExecute = () => {
     if (!selectedSignatory || !agreed) return;
@@ -70,8 +75,19 @@ const ContractReview: React.FC = () => {
         <div className="mb-6 bg-blue-50 border border-blue-200 rounded-xl p-6 text-center shadow-sm">
           <Clock className="w-10 h-10 text-blue-500 mx-auto mb-3" />
           <h2 className="text-xl font-bold text-blue-900 mb-2">Contract Successfully Executed</h2>
-          <p className="text-blue-800">The digital contract is now legally binding. The Service Provider has been notified to configure the payment schedule.</p>
-          <p className="text-sm font-bold text-blue-900 mt-4 uppercase tracking-wider">Next Step: Awaiting Payment Configuration</p>
+          <p className="text-blue-800">The digital contract is now legally binding. Both parties have verified and digitally signed the agreement.</p>
+          {linkedOrder ? (
+            <div className="mt-4 flex justify-center">
+              <button 
+                onClick={() => navigate(`/dashboard/orders/${linkedOrder.id}`)}
+                className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2.5 px-6 rounded-lg shadow-sm transition-colors text-sm flex items-center"
+              >
+                Prepare Delivery Address & View Fulfilment →
+              </button>
+            </div>
+          ) : (
+            <p className="text-sm font-bold text-blue-900 mt-4 uppercase tracking-wider">Next Step: Awaiting Payment Configuration from Service Provider</p>
+          )}
         </div>
       )}
 
@@ -88,6 +104,7 @@ const ContractReview: React.FC = () => {
           </button>
         </div>
       )}
+
 
       {/* Header Actions */}
       <div className="flex justify-between items-center mb-6">
